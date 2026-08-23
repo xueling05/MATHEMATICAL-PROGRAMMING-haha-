@@ -1,1 +1,18 @@
+print("hello world")
+print("wobuyaokaoshi")
 
+import random
+
+
+score = random.randint(1, 100)
+
+print(f"Your score is: {score}")
+
+if score >= 90:
+    print("Excellent! You got an A. 🎉")
+elif score >= 70:
+    print("Good job! You passed. 👍")
+else:
+    print("Keep practicing! You can do better. 💪")
+
+exit()
