@@ -1,4 +1,8 @@
 import os
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import csv
+from datetime import datetime
 
 
 def clear_screen():
@@ -330,3 +334,290 @@ while True:
         else:
             print("Invalid input! Please enter Y or N.")
 
+
+# =========================================================
+# FILE MANAGEMENT
+# =========================================================
+
+class FileManager:
+
+    # =====================================================
+    # WRITE INPUT FILE
+    # =====================================================
+
+    @staticmethod
+    def write_input(n, demands, s, h, v):
+
+        filename = filedialog.asksaveasfilename(
+            title="Save Input Data",
+            defaultextension=".csv",
+            filetypes= [("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+
+        if not filename:
+            return False
+
+        with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+
+            writer = csv.writer(file)
+
+            # File title
+            writer.writerow(["WAGNER-WHITIN INPUT DATA"])
+            writer.writerow([])
+
+            # Cost information
+            writer.writerow(["Parameter", "Value"])
+            writer.writerow(["Number of Years", n])
+            writer.writerow(["Setup Cost", s])
+            writer.writerow(["Holding Cost", h])
+            writer.writerow(["Variable Cost", v])
+            writer.writerow([])
+
+            # Demand information
+            writer.writerow(["Year", "Demand"])
+            for i in range(n):
+
+                writer.writerow([
+                    i + 1,
+                    demands[i]
+                ])
+
+        return True
+
+    # =====================================================
+    # READ INPUT FILE
+    # =====================================================
+
+    @staticmethod
+    def read_input():
+
+        filename = filedialog.askopenfilename(
+            title="Open Input Data",
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+
+        if not filename:
+            return None
+
+        with open(filename, "r", newline="", encoding="utf-8-sig") as file:
+
+            rows = list(csv.reader(file))
+
+        try:
+            # Read number of years
+            n = int(float(rows[3][1]))
+
+            # Read costs
+            s = float(rows[4][1])
+            h = float(rows[5][1])
+            v = float(rows[6][1])
+
+            # Read demand
+            demands = []
+
+            for row in rows[9:]:
+
+                if len(row) >= 2:
+
+                    if row[0].strip():
+
+                        demands.append(float(row[1]))
+
+            # Check demand count
+            if len(demands) != n:
+
+                raise ValueError(
+                    "The number of demand values "
+                    "does not match the number of years."
+                )
+
+        except Exception as error:
+
+            raise ValueError(f"Invalid input file:\n{error}")
+
+        return (n, demands, s, h, v)
+
+    # =====================================================
+    # EXPORT RESULTS TO CSV
+    # =====================================================
+
+    @staticmethod
+    def export_csv(results):
+
+        if results is None:
+
+            raise ValueError(
+                "No calculation result available."
+            )
+
+        filename = filedialog.asksaveasfilename(
+            title="Export Results to CSV",
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+
+        if not filename:
+            return False
+
+        with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+
+            writer = csv.writer(file)
+
+            # Title
+            writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTION"])
+            writer.writerow([])
+            
+            # Ordering plan
+            writer.writerow(["Year", "Demand", "Order Quantity", "Order Covers Until"])
+
+            for i in range(results["n"]):
+
+                if (results["order_schedule"][i] > 0):
+
+                    order_quantity = (results["order_schedule"][i])
+                    covers_until = (results["order_end_period"][i])
+
+                else:
+
+                    order_quantity = 0
+                    covers_until = "-"
+
+                writer.writerow([i + 1, results["demands"][i], order_quantity, covers_unti])
+            
+            writer.writerow([])
+
+            # Cost breakdown
+            writer.writerow(["COST BREAKDOWN"])
+            writer.writerow(["Total Setup Cost", results["total_setup_cost"]])
+            writer.writerow(["Total Holding Cost", results["total_holding_cost"]])
+            writer.writerow(["Total Variable Cost", results["total_variable_cost"]])
+            writer.writerow([])
+            writer.writerow(["TOTAL OPTIMAL COST", results["total_cost"]])
+
+        return True
+
+    # =====================================================
+    # EXPORT TEXT REPORT
+    # =====================================================
+
+    @staticmethod
+    def export_report(results):
+
+        if results is None:
+
+            raise ValueError(
+                "No calculation result available."
+            )
+
+        filename = filedialog.asksaveasfilename(
+            title="Export WWA Report",
+            defaultextension=".txt",
+            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+        )
+
+        if not filename:
+            return False
+
+        with open(filename, "w", encoding="utf-8") as file:
+
+            # Report heading
+            file.write("=" * 70 + "\n")
+            file.write("WAGNER-WHITIN OPTIMAL SOLUTION\n")
+            file.write("=" * 70 + "\n")
+            file.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+
+            # Input information
+            file.write("INPUT INFORMATION\n")
+            file.write("-" * 70 + "\n")
+            file.write(
+                f"Number of Years : " 
+                f"{results['n']}\n"
+            )
+
+            file.write(
+                f"Setup Cost      : "
+                f"RM {results['setup_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Holding Cost    : "
+                f"RM {results['holding_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Variable Cost   : "
+                f"RM {results['variable_cost']:.2f}\n\n"
+            )
+
+            # Demand
+            file.write("DEMAND BY YEAR\n")
+            file.write("-" * 70 + "\n")
+
+            for i in range(results["n"]):
+
+                file.write(
+                    f"Year {i + 1:<3}: "
+                    f"{results['demands'][i]:.2f}\n"
+                )
+
+            # Optimal ordering plan
+            file.write("\nOPTIMAL ORDERING PLAN\n")
+            file.write("-" * 70 + "\n")
+
+            file.write(
+                f"{'Year':<10}"
+                f"{'Demand':<15}"
+                f"{'Order Qty':<15}"
+                f"{'Covers Until':<15}\n"
+            )
+
+            file.write("-" * 70 + "\n")
+
+            for i in range(results["n"]):
+
+                if (results["order_schedule"][i] > 0):
+
+                    qty = (results["order_schedule"][i])
+                    end = (results["order_end_period"][i])
+
+                else:
+
+                    qty = 0
+                    end = "-"
+
+                file.write(
+                    f"{i + 1:<10}"
+                    f"{results['demands'][i]:<15.2f}"
+                    f"{qty:<15.2f}"
+                    f"{str(end):<15}\n"
+                )
+
+            # Cost breakdown
+            file.write("\nCOST BREAKDOWN\n")
+            file.write("-" * 70 + "\n")
+
+            file.write(
+                f"Total Setup Cost   : "
+                f"RM {results['total_setup_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Total Holding Cost : "
+                f"RM {results['total_holding_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Total Variable Cost: "
+                f"RM {results['total_variable_cost']:.2f}\n"
+            )
+
+            file.write("-" * 70 + "\n")
+
+            file.write(
+                f"TOTAL OPTIMAL COST : "
+                f"RM {results['total_cost']:.2f}\n"
+            )
+
+            file.write("=" * 70 + "\n")
+
+        return True
