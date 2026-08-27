@@ -40,12 +40,12 @@ def input_demands(n):
     demands = []
 
     # First-time demand input
-    print("\nEnter demand for each period")
+    print("\nEnter demand for each year")
     print("-" * 40)
 
     for i in range(1, n + 1):
         d = get_validated_input(
-            f"Enter demand for period {i}: ",
+            f"Enter demand for year {i}: ",
             allow_zero=True
         )
         demands.append(d)
@@ -58,7 +58,7 @@ def input_demands(n):
         print("=" * 40)
 
         for i in range(n):
-            print(f"Period {i + 1}: {demands[i]:.1f}")
+            print(f"Year {i + 1}: {demands[i]:.1f}")
 
         print("=" * 40)
         print("1. Confirm")
@@ -72,19 +72,19 @@ def input_demands(n):
                 return demands
 
             elif choice == "2":
-                # Keep asking until a valid period is entered
+                # Keep asking until a valid year is entered
                 while True:
-                    period = get_validated_input(f"Enter period to edit (1-{n}): ",is_integer=True,allow_zero=False)
+                    year = get_validated_input(f"Enter year to edit (1-{n}): ",is_integer=True,allow_zero=False)
 
-                    if 1 <= period <= n:
+                    if 1 <= year <= n:
                         break
-                    print("Invalid period! Please enter a valid period.")
+                    print("Invalid year! Please enter a valid year.")
 
-                # Ask for new demand AFTER a valid period is entered
-                new_demand = get_validated_input(f"Enter new demand for period {period}: ",allow_zero=True)
+                # Ask for new demand AFTER a valid year is entered
+                new_demand = get_validated_input(f"Enter new demand for year {year}: ",allow_zero=True)
 
                 # Update the selected demand
-                demands[period - 1] = new_demand
+                demands[year - 1] = new_demand
 
                 # Show updated demand
                 print("\n" + "-" * 40)
@@ -92,7 +92,7 @@ def input_demands(n):
                 print("-" * 40)
                 
                 for i in range(n):
-                    print(f"Period {i + 1}: {demands[i]:.1f}")
+                    print(f"Year {i + 1}: {demands[i]:.1f}")
         
                 print("-" * 40)
 
@@ -101,14 +101,14 @@ def input_demands(n):
 
             elif choice == "3":
 
-                print("\nEnter demand for each period")
+                print("\nEnter demand for each year")
                 print("-" * 40)
 
                 demands = []
 
                 for i in range(1, n + 1):
                     d = get_validated_input(
-                        f"Enter demand for period {i}: ",
+                        f"Enter demand for year {i}: ",
                         allow_zero=True
                     )
                     demands.append(d)
@@ -134,19 +134,19 @@ def wagner_whitin_backward():
     # 1. User Inputs
     # -----------------------------------------------------
 
-    n = get_validated_input("\nEnter number of periods: ", is_integer=True, allow_zero=False)
+    n = get_validated_input("\nEnter number of years: ", is_integer=True, allow_zero=False)
 
     # Confirm / edit demand
     demands = input_demands(n)
 
     s = get_validated_input("\nEnter Setup cost: ",allow_zero=False)
-    h = get_validated_input("Enter Holding cost per unit/period: ",allow_zero=False)
+    h = get_validated_input("Enter Holding cost per unit/year: ",allow_zero=False)
     v = get_validated_input("Enter Variable cost per unit: ",allow_zero=False)
 
     # -----------------------------------------------------
     # 2. Initialize DP tables
     # -----------------------------------------------------
-    # f[i] will store the min cost to satisfy demand from period i to n
+    # f[i] will store the min cost to satisfy demand from year i to n
     # We use n+2 size to handle the "base case" at the end easily
 
     f = [0.0] * (n + 2) 
@@ -161,20 +161,20 @@ def wagner_whitin_backward():
     # -----------------------------------------------------
     # 3. Backward DP Calculation
     # -----------------------------------------------------
-    # Start from the last period and move to the first
+    # Start from the last year and move to the first
 
     for i in range(n, 0, -1):
 
         min_cost = float('inf')
         best_k = -1
 
-        # Test placing an order in period i that covers demand up to period k
+        # Test placing an order in year i that covers demand up to year k
         for k in range(i, n + 1):
 
             # Calculate demand and costs for this specific lot (i to k)
             current_lot_demand = sum(demands[i - 1:k])
 
-            # Holding cost: items for period 'm' are held for (m - i) periods
+            # Holding cost: items for year 'm' are held for (m - i) years
             current_holding_cost = 0
 
             for m in range(i, k + 1):
@@ -198,26 +198,26 @@ def wagner_whitin_backward():
     # -----------------------------------------------------
     # 4. Forward Backtracking
     # -----------------------------------------------------
-    # Start at period 1 and follow the pointers forward
+    # Start at year 1 and follow the pointers forward
 
     order_schedule = [0.0] * n
-    order_end_period = [0] * n
+    order_end_year = [0] * n
 
 
     curr = 1
 
     while curr <= n:
 
-        end_period = next_order_end[curr]
+        end_year = next_order_end[curr]
 
         # Calculate the size of the order placed at 'curr'
-        qty = sum(demands[curr - 1:end_period])
+        qty = sum(demands[curr - 1:end_year])
 
         order_schedule[curr - 1] = qty
-        order_end_period[curr - 1] = end_period
+        order_end_year[curr - 1] = end_year
 
-        # Jump to the period after this lot ends
-        curr = end_period + 1
+        # Jump to the year after this lot ends
+        curr = end_year + 1
 
 
 
@@ -236,9 +236,9 @@ def wagner_whitin_backward():
             total_setup_cost += s
             total_variable_cost += (order_schedule[i] * v)
 
-            end_period = order_end_period[i]
+            end_year = order_end_year[i]
 
-            for m in range(i + 1, end_period):
+            for m in range(i + 1, end_year):
 
                 total_holding_cost += ((m - i)* demands[m]* h)
 
@@ -261,17 +261,17 @@ def wagner_whitin_backward():
     print("\nINPUT INFORMATION")
     print("-" * 65)
 
-    print(f"Number of periods : {n}")
+    print(f"Number of years : {n}")
     print(f"Setup cost        : ${s:.2f}")
     print(f"Holding cost      : ${h:.2f}")
     print(f"Variable cost     : ${v:.2f}")
 
-    print("\nDemand by Period")
+    print("\nDemand by Year")
     print("-" * 65)
 
     for i in range(n):
         print(
-            f"Period {i + 1:<3} : {demands[i]:.1f}"
+            f"Year {i + 1:<3} : {demands[i]:.1f}"
         )
 
     # -----------------------------------------------------
@@ -282,7 +282,7 @@ def wagner_whitin_backward():
     print("OPTIMAL ORDERING PLAN")
     print("=" * 65)
 
-    print(f"{'Period':<8} | {'Demand':<10} | {'Order Qty':<12}")
+    print(f"{'Year':<8} | {'Demand':<10} | {'Order Qty':<12}")
     
     print("-" * 65)
 
