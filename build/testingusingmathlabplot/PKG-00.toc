@@ -1,0 +1,74 @@
+('C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+ 'programming\\asm '
+ 'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\testingusingmathlabplot.pkg',
+ {'BINARY': True,
+  'DATA': True,
+  'EXECUTABLE': True,
+  'EXTENSION': True,
+  'PYMODULE': True,
+  'PYSOURCE': True,
+  'PYZ': False,
+  'SPLASH': True,
+  'SYMLINK': False},
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\build\\testingusingmathlabplot\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_mplconfig',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_mplconfig.py',
+   'PYSOURCE'),
+  ('pyi_rth__tkinter',
+   'C:\\Programs\\pyenv\\.pyenv\\pyenv-win\\versions\\3.12.3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
+   'PYSOURCE'),
+  ('testingusingmathlabplot',
+   'C:\\Users\\caitl\\OneDrive\\Desktop\\caitlin\\utar\\mathematical '
+   'programming\\asm '
+   'code\\MATHEMATICAL-PROGRAMMING-haha-\\testingusingmathlabplot.py',
+   'PYSOURCE')],
+ 'python312.dll',
+ True,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)
