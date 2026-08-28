@@ -133,102 +133,20 @@ def validate_number(value,integer=False,allow_zero=True):
 
 class FileManager:
 
-    # WRITE INPUT DATA TO CSV
-
-    @staticmethod
-    def write_input(n,demands,s,h,v):
-
-        # Open Save As dialog
-
-        filename = filedialog.asksaveasfilename(
-
-            title="Save Input Data",
-
-            defaultextension=".csv",
-
-            filetypes=[("CSV Files", "*.csv"),("All Files", "*.*")])
-
-        if not filename:
-
-            return False
-
-        # Open CSV file for writing
-
-        with open(
-            filename,
-            "w",
-            newline="",
-            encoding="utf-8-sig"
-        ) as file:
-
-            writer = csv.writer(file)
-
-            writer.writerow(
-                ["WAGNER-WHITIN INPUT DATA"]
-            )
-
-            writer.writerow([])
-
-            writer.writerow(
-                ["Parameter", "Value"]
-            )
-
-            writer.writerow(
-                ["Number of Years", n]
-            )
-
-            writer.writerow(
-                ["Setup Cost", s]
-            )
-
-            writer.writerow(
-                ["Holding Cost", h]
-            )
-
-            writer.writerow(
-                ["Variable Cost", v]
-            )
-
-            writer.writerow([])
-
-            writer.writerow(
-                ["Year", "Demand"]
-            )
-
-            for i in range(n):
-
-                writer.writerow([
-                    i + 1,
-                    demands[i]
-                ])
-
-        return True
-
-    # =====================================================
-    # MODIFIED / ADDED
-    # READ INPUT DATA FROM CSV
-    # =====================================================
+    # READ INPUT FILE FROM CSV
 
     @staticmethod
     def read_input():
 
         filename = filedialog.askopenfilename(
-
-            title="Open Input Data",
-
-            filetypes=[
-                ("CSV Files", "*.csv"),
-                ("All Files", "*.*")
-            ]
+            title="Open Input Data", 
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
         )
 
         if not filename:
-
             return None
 
-        # Open CSV file for reading
-
-        with open(filename,"r",newline="",encoding="utf-8-sig") as file:
+        with open(filename, "r", newline="", encoding="utf-8-sig") as file:
 
             rows = list(csv.reader(file))
 
@@ -243,79 +161,82 @@ class FileManager:
 
             # Read demand
             demands = []
+
             for row in rows[9:]:
+
                 if len(row) >= 2:
+
                     if row[0].strip():
+
                         demands.append(float(row[1]))
 
-            # Validate number of demands
-
+            # Check demand count
             if len(demands) != n:
+
                 raise ValueError("The number of demand values does not match the number of years.")
 
         except Exception as error:
+
             raise ValueError(f"Invalid input file:\n{error}")
 
-        return (n,demands,s,h,v)
-
-    # EXPORT CALCULATION RESULT TO CSV
-
+        return (n, demands, s, h, v)
+        
+    # EXPORT RESULTS TO CSV
+ 
     @staticmethod
     def export_csv(results):
-
-        if results is None:
-
-            raise ValueError("No calculation result available.")
-
-        filename = filedialog.asksaveasfilename(
-            title="Export Results to CSV",
-            defaultextension=".csv",
-            filetypes=[("CSV Files", "*.csv"),("All Files", "*.*")])
-
-        if not filename:
-            return False
-
-        with open(filename,"w",newline="",encoding="utf-8-sig") as file:
-
-            writer = csv.writer(file)
-            writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTION"])
-            writer.writerow([])
-
-            # Optimal ordering plan
-
-            writer.writerow([
-                "Year",
-                "Demand",
-                "Order Quantity",
-                "Order Covers Until"])
-
-            for i in range(results["n"]):
-
-                if (results["order_schedule"][i]> 0):
-
-                    order_quantity = (results["order_schedule"][i])
-                    covers_until = (results["order_end_year"][i])
-
-                else:
-
-                    order_quantity = 0
-                    covers_until = "-"
-
-                writer.writerow([i + 1,results["demands"][i],order_quantity,covers_until])
-
-            writer.writerow([])
-
-            # Cost breakdown
-            writer.writerow(["COST BREAKDOWN"])
-            writer.writerow(["Total Setup Cost",results["total_setup_cost"]])
-            writer.writerow(["Total Holding Cost",results["total_holding_cost"]])
-            writer.writerow(["Total Variable Cost",results["total_variable_cost"]])
-            writer.writerow([])
-            writer.writerow(["TOTAL OPTIMAL COST",results["total_cost"]])
-
-        return True
-
-    # EXPORT RESULT AS TEXT REPORT
+ 
+         if results is None:
+ 
+             raise ValueError("No calculation result available.")
+ 
+         filename = filedialog.asksaveasfilename(
+             title="Export Results to CSV",
+             defaultextension=".csv",
+             filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+         )
+ 
+         if not filename:
+             return False
+ 
+         with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+ 
+             writer = csv.writer(file)
+ 
+             # Title
+             writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTION"])
+             writer.writerow([])
+             
+             # Ordering plan
+             writer.writerow(["Year", "Demand", "Order Quantity", "Order Covers Until"])
+ 
+             for i in range(results["n"]):
+ 
+                 if (results["order_schedule"][i] > 0):
+ 
+                     order_quantity = (results["order_schedule"][i])
+                     covers_until = (results["order_end_year"][i])
+ 
+                 else:
+ 
+                     order_quantity = 0
+                     covers_until = "-"
+ 
+                 writer.writerow([i + 1, results["demands"][i], order_quantity, covers_until])
+             
+             writer.writerow([])
+ 
+             # Cost breakdown
+             writer.writerow(["COST BREAKDOWN"])
+             writer.writerow(["Total Setup Cost", results["total_setup_cost"]])
+             writer.writerow(["Total Holding Cost", results["total_holding_cost"]])
+             writer.writerow(["Total Variable Cost", results["total_variable_cost"]])
+             writer.writerow([])
+             writer.writerow(["TOTAL OPTIMAL COST", results["total_cost"]])
+ 
+         return True
+    
+    # EXPORT TEXT REPORT
 
     @staticmethod
     def export_report(results):
@@ -325,32 +246,44 @@ class FileManager:
             raise ValueError("No calculation result available.")
 
         filename = filedialog.asksaveasfilename(
-
             title="Export WWA Report",
-
             defaultextension=".txt",
-
-            filetypes=[("Text Files", "*.txt"),("All Files", "*.*")])
+            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+        )
 
         if not filename:
-
             return False
 
-        with open(filename,"w",encoding="utf-8") as file:
+        with open(filename, "w", encoding="utf-8") as file:
 
+            # Report heading
             file.write("=" * 70 + "\n")
             file.write("WAGNER-WHITIN OPTIMAL SOLUTION\n")
             file.write("=" * 70 + "\n")
-
             file.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
 
             # Input information
             file.write("INPUT INFORMATION\n")
             file.write("-" * 70 + "\n")
-            file.write(f"Number of Years : "f"{results['n']}\n")
-            file.write(f"Setup Cost      : "f"RM {results['setup_cost']:.2f}\n")
-            file.write(f"Holding Cost    : "f"RM {results['holding_cost']:.2f}\n")
-            file.write(f"Variable Cost   : "f"RM {results['variable_cost']:.2f}\n\n")
+            file.write(
+                f"Number of Years : " 
+                f"{results['n']}\n"
+            )
+
+            file.write(
+                f"Setup Cost      : "
+                f"RM {results['setup_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Holding Cost    : "
+                f"RM {results['holding_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Variable Cost   : "
+                f"RM {results['variable_cost']:.2f}\n\n"
+            )
 
             # Demand
             file.write("DEMAND BY YEAR\n")
@@ -358,28 +291,33 @@ class FileManager:
 
             for i in range(results["n"]):
 
-                file.write(f"Year {i + 1:<3}: "f"{results['demands'][i]:.2f}\n")
+                file.write(
+                    f"Year {i + 1:<3}: "
+                    f"{results['demands'][i]:.2f}\n"
+                )
 
-            # Ordering plan
+            # Optimal ordering plan
             file.write("\nOPTIMAL ORDERING PLAN\n")
-
             file.write("-" * 70 + "\n")
 
             file.write(
                 f"{'Year':<10}"
                 f"{'Demand':<15}"
                 f"{'Order Qty':<15}"
-                f"{'Covers Until':<15}\n")
+                f"{'Covers Until':<15}\n"
+            )
 
             file.write("-" * 70 + "\n")
 
             for i in range(results["n"]):
 
-                if (results["order_schedule"][i]> 0):
-                    qty = ( results["order_schedule"][i])
+                if (results["order_schedule"][i] > 0):
+
+                    qty = (results["order_schedule"][i])
                     end = (results["order_end_year"][i])
 
                 else:
+
                     qty = 0
                     end = "-"
 
@@ -387,17 +325,35 @@ class FileManager:
                     f"{i + 1:<10}"
                     f"{results['demands'][i]:<15.2f}"
                     f"{qty:<15.2f}"
-                    f"{str(end):<15}\n")
+                    f"{str(end):<15}\n"
+                )
 
             # Cost breakdown
-
-            file.write( "\nCOST BREAKDOWN\n")
+            file.write("\nCOST BREAKDOWN\n")
             file.write("-" * 70 + "\n")
-            file.write( f"Total Setup Cost   : "f"RM {results['total_setup_cost']:.2f}\n")
-            file.write( f"Total Holding Cost : "f"RM {results['total_holding_cost']:.2f}\n") 
-            file.write( f"Total Variable Cost: "f"RM {results['total_variable_cost']:.2f}\n")
-            file.write( "-" * 70 + "\n")
-            file.write( f"TOTAL OPTIMAL COST : "f"RM {results['total_cost']:.2f}\n")
+
+            file.write(
+                f"Total Setup Cost   : "
+                f"RM {results['total_setup_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Total Holding Cost : "
+                f"RM {results['total_holding_cost']:.2f}\n"
+            )
+
+            file.write(
+                f"Total Variable Cost: "
+                f"RM {results['total_variable_cost']:.2f}\n"
+            )
+
+            file.write("-" * 70 + "\n")
+
+            file.write(
+                f"TOTAL OPTIMAL COST : "
+                f"RM {results['total_cost']:.2f}\n"
+            )
+
             file.write("=" * 70 + "\n")
 
         return True
@@ -515,12 +471,6 @@ class WagnerWhitinGUI:
         ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
             row=0,
             column=1,
-            padx=5)
-
-        # Write Input
-        ttk.Button(button_frame,text="Write Input",command=self.save_input).grid(
-            row=0,
-            column=2,
             padx=5)
 
         # Export CSV
@@ -728,24 +678,6 @@ class WagnerWhitinGUI:
                 "Total Optimal Cost: "
                 f"RM {self.results['total_cost']:,.2f}"))
 
-    # SAVE / WRITE INPUT
-    def save_input(self):
-
-        try:
-            data = self.get_inputs()
-            success = (FileManager.write_input(*data))
-
-            if success:
-
-                messagebox.showinfo(
-                    "Success",
-                    "Input data has been saved successfully.")
-
-                self.status.config(text="Input data saved.")
-
-        except Exception as error:
-
-            messagebox.showerror("Save Error",str(error))
 
     # READ INPUT
     def read_input(self):
