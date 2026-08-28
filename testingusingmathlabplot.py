@@ -757,7 +757,7 @@ class WagnerWhitinGUI:
 
             messagebox.showerror("Export Error",str(error))
 
-    # EXPORT TEXT REPOR
+    # EXPORT TEXT REPORT
 
     def export_report(self):
 
