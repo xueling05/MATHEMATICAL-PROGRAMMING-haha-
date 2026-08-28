@@ -792,6 +792,7 @@ class WagnerWhitinGUI:
                 "Export Error",
                 str(error))
 
+    #demand trend line graph
     def show_demand_trend(self):
 
         # Check whether calculation has been performed
@@ -801,17 +802,14 @@ class WagnerWhitinGUI:
                 "Please calculate the WWA solution first.")
             return
 
-        # Create a new window
+        #Create new window
         graph_window = tk.Toplevel(self.root)
         graph_window.title("Demand Trend")
         graph_window.geometry("850x600")
 
         # Get data from WWA results
         years = list(
-            range(
-                1,
-                self.results["n"] + 1
-            )
+            range(1, self.results["n"] + 1)
         )
 
         demands = self.results["demands"]
@@ -833,13 +831,13 @@ class WagnerWhitinGUI:
 
         # Graph title
         axis.set_title(
-            "Demand Trend Over Planning Horizon",
+            "Demand Trend Line Graph",
             fontsize=14,
             fontweight="bold")
 
         # Axis labels
         axis.set_xlabel("Year")
-        axis.set_ylabel("Demand")
+        axis.set_ylabel("Number of Demand")
 
         # Show every year on x-axis
         axis.set_xticks(years)
