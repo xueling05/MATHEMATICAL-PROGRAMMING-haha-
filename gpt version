@@ -42,30 +42,17 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
         for k in range(i, n + 1):
 
-            current_lot_demand = sum(
-                demands[i - 1:k]
-            )
+            current_lot_demand = sum(demands[i - 1:k])
 
             current_holding_cost = 0
 
             for m in range(i, k + 1):
 
-                current_holding_cost += (
-                    (m - i)
-                    * demands[m - 1]
-                    * h
-                )
+                current_holding_cost += ((m - i)*demands[m - 1]*h)
 
-            current_variable_cost = (
-                current_lot_demand * v
-            )
+            current_variable_cost = (current_lot_demand * v)
 
-            total_cost = (
-                s
-                + current_holding_cost
-                + current_variable_cost
-                + f[k + 1]
-            )
+            total_cost = (s + current_holding_cost + current_variable_cost + f[k + 1])
 
             if total_cost < min_cost:
 
@@ -92,9 +79,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
         end_period = next_order_end[curr]
 
-        qty = sum(
-            demands[curr - 1:end_period]
-        )
+        qty = sum(demands[curr - 1:end_period])
 
         order_schedule[curr - 1] = qty
 
@@ -119,25 +104,15 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
             total_setup_cost += s
 
-            total_variable_cost += (
-                order_schedule[i] * v
-            )
+            total_variable_cost += (order_schedule[i] * v)
 
             end_period = order_end_period[i]
 
             for m in range(i + 1, end_period):
 
-                total_holding_cost += (
-                    (m - i)
-                    * demands[m]
-                    * h
-                )
+                total_holding_cost += ((m - i) * demands[m] * h)
 
-    total_cost = (
-        total_setup_cost
-        + total_holding_cost
-        + total_variable_cost
-    )
+    total_cost = (total_setup_cost + total_holding_cost + total_variable_cost)
 
     # =====================================================
     # MODIFIED BY GUI MEMBER
@@ -171,9 +146,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
 # INPUT VALIDATION FOR GUI
 # =========================================================
 
-def validate_number(
-    value,
-    integer=False,
+def validate_number(value,integer=False,
     allow_zero=True
 ):
 
