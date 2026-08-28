@@ -8,36 +8,14 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-# =========================================================
-# ORIGINAL GROUP MEMBER CODE
-# WAGNER-WHITIN ALGORITHM
-# =========================================================
-#
-# The calculation logic below is based on the original
-# group member's WWA coding.
-#
-# MODIFICATION:
-# Instead of using input() and print(), this function
-# receives the data from the GUI and returns the results
-# to the GUI.
-# =========================================================
-
 def wagner_whitin_backward(n, demands, s, h, v):
 
-    # -----------------------------------------------------
-    # ORIGINAL GROUP MEMBER CODE
     # Initialize DP tables
-    # -----------------------------------------------------
-
     f = [0.0] * (n + 2)
 
     next_order_end = [0] * (n + 1)
 
-    # -----------------------------------------------------
-    # ORIGINAL GROUP MEMBER CODE
     # Backward Dynamic Programming Calculation
-    # -----------------------------------------------------
-
     for i in range(n, 0, -1):
 
         min_cost = float("inf")
@@ -46,109 +24,66 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
         for k in range(i, n + 1):
 
-            current_lot_demand = sum(
-                demands[i - 1:k]
-            )
+            current_lot_demand = sum(demands[i - 1:k])
 
             current_holding_cost = 0
 
             for m in range(i, k + 1):
+ 
+                current_holding_cost += ((m - i) * demands[m - 1] * h)
 
-                current_holding_cost += (
-                    (m - i)
-                    * demands[m - 1]
-                    * h
-                )
+            current_variable_cost = (current_lot_demand * v)
 
-            current_variable_cost = (
-                current_lot_demand * v
-            )
-
-            total_cost = (
-                s
-                + current_holding_cost
-                + current_variable_cost
-                + f[k + 1]
-            )
+            total_cost = (s + current_holding_cost + current_variable_cost + f[k + 1])
 
             if total_cost < min_cost:
-
                 min_cost = total_cost
-
                 best_k = k
 
         f[i] = min_cost
-
         next_order_end[i] = best_k
 
-    # -----------------------------------------------------
-    # ORIGINAL GROUP MEMBER CODE
     # Forward Backtracking
-    # -----------------------------------------------------
 
     order_schedule = [0.0] * n
-
-    order_end_period = [0] * n
+    order_end_year = [0] * n
 
     curr = 1
 
     while curr <= n:
 
-        end_period = next_order_end[curr]
+        end_year = next_order_end[curr]
 
-        qty = sum(
-            demands[curr - 1:end_period]
-        )
+        qty = sum(demands[curr - 1:end_year])
 
         order_schedule[curr - 1] = qty
 
-        order_end_period[curr - 1] = end_period
+        order_end_year[curr - 1] = end_year
 
-        curr = end_period + 1
+        curr = end_year + 1
 
-    # -----------------------------------------------------
-    # ORIGINAL GROUP MEMBER CODE
     # Cost Breakdown
-    # -----------------------------------------------------
 
     total_setup_cost = 0
-
     total_holding_cost = 0
-
     total_variable_cost = 0
 
     for i in range(n):
 
         if order_schedule[i] > 0:
-
             total_setup_cost += s
+            total_variable_cost += (order_schedule[i] * v)
 
-            total_variable_cost += (
-                order_schedule[i] * v
-            )
+            end_year = order_end_year[i]
 
-            end_period = order_end_period[i]
+            for m in range(i + 1, end_year):
 
-            for m in range(i + 1, end_period):
+                total_holding_cost += ((m - i) * demands[m] * h)
 
-                total_holding_cost += (
-                    (m - i)
-                    * demands[m]
-                    * h
-                )
+    total_cost = (total_setup_cost + total_holding_cost + total_variable_cost)
 
-    total_cost = (
-        total_setup_cost
-        + total_holding_cost
-        + total_variable_cost
-    )
-
-    # =====================================================
-    # MODIFIED BY GUI MEMBER
-    # Instead of printing the result here, return all
+   
     # calculation results to the GUI.
-    # =====================================================
-
     return {
         "n": n,
         "demands": demands,
@@ -158,7 +93,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
         "order_schedule": order_schedule,
 
-        "order_end_period": order_end_period,
+        "order_end_year": order_end_year,
 
         "total_setup_cost": total_setup_cost,
 
@@ -170,72 +105,38 @@ def wagner_whitin_backward(n, demands, s, h, v):
     }
 
 
-# =========================================================
-# MODIFIED / ADDED
 # INPUT VALIDATION FOR GUI
-# =========================================================
 
-def validate_number(
-    value,
-    integer=False,
-    allow_zero=True
-):
-
+def validate_number(value,integer=False,allow_zero=True):
     try:
-
         if integer:
-
             number = int(value)
 
         else:
-
             number = float(value)
 
     except ValueError:
-
-        raise ValueError(
-            "Please enter a valid numeric value."
-        )
+        raise ValueError("Please enter a valid numeric value.")
 
     if allow_zero:
-
         if number < 0:
-
-            raise ValueError(
-                "Value must be 0 or positive."
-            )
+            raise ValueError("Value must be 0 or positive.")
 
     else:
 
         if number <= 0:
-
-            raise ValueError(
-                "Value must be greater than 0."
-            )
+            raise ValueError("Value must be greater than 0.")
 
     return number
 
-
-# =========================================================
-# MODIFIED / ADDED BY EXPORT & FILE MANAGEMENT MEMBER
 # FILE MANAGEMENT
-# =========================================================
 
 class FileManager:
 
-    # =====================================================
-    # MODIFIED / ADDED
     # WRITE INPUT DATA TO CSV
-    # =====================================================
 
     @staticmethod
-    def write_input(
-        n,
-        demands,
-        s,
-        h,
-        v
-    ):
+    def write_input(n,demands,s,h,v):
 
         # Open Save As dialog
 
@@ -245,11 +146,7 @@ class FileManager:
 
             defaultextension=".csv",
 
-            filetypes=[
-                ("CSV Files", "*.csv"),
-                ("All Files", "*.*")
-            ]
-        )
+            filetypes=[("CSV Files", "*.csv"),("All Files", "*.*")])
 
         if not filename:
 
@@ -331,119 +228,57 @@ class FileManager:
 
         # Open CSV file for reading
 
-        with open(
-            filename,
-            "r",
-            newline="",
-            encoding="utf-8-sig"
-        ) as file:
+        with open(filename,"r",newline="",encoding="utf-8-sig") as file:
 
-            rows = list(
-                csv.reader(file)
-            )
+            rows = list(csv.reader(file))
 
         try:
-
             # Read number of years
-
-            n = int(
-                float(rows[3][1])
-            )
+            n = int(float(rows[3][1]))
 
             # Read costs
-
-            s = float(
-                rows[4][1]
-            )
-
-            h = float(
-                rows[5][1]
-            )
-
-            v = float(
-                rows[6][1]
-            )
+            s = float(rows[4][1])
+            h = float(rows[5][1])
+            v = float(rows[6][1])
 
             # Read demand
-
             demands = []
-
             for row in rows[9:]:
-
                 if len(row) >= 2:
-
                     if row[0].strip():
-
-                        demands.append(
-                            float(row[1])
-                        )
+                        demands.append(float(row[1]))
 
             # Validate number of demands
 
             if len(demands) != n:
-
-                raise ValueError(
-                    "The number of demand values "
-                    "does not match the number of years."
-                )
+                raise ValueError("The number of demand values does not match the number of years.")
 
         except Exception as error:
+            raise ValueError(f"Invalid input file:\n{error}")
 
-            raise ValueError(
-                f"Invalid input file:\n{error}"
-            )
+        return (n,demands,s,h,v)
 
-        return (
-            n,
-            demands,
-            s,
-            h,
-            v
-        )
-
-    # =====================================================
-    # MODIFIED / ADDED
     # EXPORT CALCULATION RESULT TO CSV
-    # =====================================================
 
     @staticmethod
     def export_csv(results):
 
         if results is None:
 
-            raise ValueError(
-                "No calculation result available."
-            )
+            raise ValueError("No calculation result available.")
 
         filename = filedialog.asksaveasfilename(
-
             title="Export Results to CSV",
-
             defaultextension=".csv",
-
-            filetypes=[
-                ("CSV Files", "*.csv"),
-                ("All Files", "*.*")
-            ]
-        )
+            filetypes=[("CSV Files", "*.csv"),("All Files", "*.*")])
 
         if not filename:
-
             return False
 
-        with open(
-            filename,
-            "w",
-            newline="",
-            encoding="utf-8-sig"
-        ) as file:
+        with open(filename,"w",newline="",encoding="utf-8-sig") as file:
 
             writer = csv.writer(file)
-
-            writer.writerow(
-                ["WAGNER-WHITIN OPTIMAL SOLUTION"]
-            )
-
+            writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTION"])
             writer.writerow([])
 
             # Optimal ordering plan
@@ -452,84 +287,42 @@ class FileManager:
                 "Year",
                 "Demand",
                 "Order Quantity",
-                "Order Covers Until"
-            ])
+                "Order Covers Until"])
 
-            for i in range(
-                results["n"]
-            ):
+            for i in range(results["n"]):
 
-                if (
-                    results["order_schedule"][i]
-                    > 0
-                ):
+                if (results["order_schedule"][i]> 0):
 
-                    order_quantity = (
-                        results["order_schedule"][i]
-                    )
-
-                    covers_until = (
-                        results["order_end_period"][i]
-                    )
+                    order_quantity = (results["order_schedule"][i])
+                    covers_until = (results["order_end_year"][i])
 
                 else:
 
                     order_quantity = 0
-
                     covers_until = "-"
 
-                writer.writerow([
-                    i + 1,
-                    results["demands"][i],
-                    order_quantity,
-                    covers_until
-                ])
+                writer.writerow([i + 1,results["demands"][i],order_quantity,covers_until])
 
             writer.writerow([])
 
             # Cost breakdown
-
-            writer.writerow(
-                ["COST BREAKDOWN"]
-            )
-
-            writer.writerow([
-                "Total Setup Cost",
-                results["total_setup_cost"]
-            ])
-
-            writer.writerow([
-                "Total Holding Cost",
-                results["total_holding_cost"]
-            ])
-
-            writer.writerow([
-                "Total Variable Cost",
-                results["total_variable_cost"]
-            ])
-
+            writer.writerow(["COST BREAKDOWN"])
+            writer.writerow(["Total Setup Cost",results["total_setup_cost"]])
+            writer.writerow(["Total Holding Cost",results["total_holding_cost"]])
+            writer.writerow(["Total Variable Cost",results["total_variable_cost"]])
             writer.writerow([])
-
-            writer.writerow([
-                "TOTAL OPTIMAL COST",
-                results["total_cost"]
-            ])
+            writer.writerow(["TOTAL OPTIMAL COST",results["total_cost"]])
 
         return True
 
-    # =====================================================
-    # MODIFIED / ADDED
     # EXPORT RESULT AS TEXT REPORT
-    # =====================================================
 
     @staticmethod
     def export_report(results):
 
         if results is None:
 
-            raise ValueError(
-                "No calculation result available."
-            )
+            raise ValueError("No calculation result available.")
 
         filename = filedialog.asksaveasfilename(
 
@@ -537,941 +330,478 @@ class FileManager:
 
             defaultextension=".txt",
 
-            filetypes=[
-                ("Text Files", "*.txt"),
-                ("All Files", "*.*")
-            ]
-        )
+            filetypes=[("Text Files", "*.txt"),("All Files", "*.*")])
 
         if not filename:
 
             return False
 
-        with open(
-            filename,
-            "w",
-            encoding="utf-8"
-        ) as file:
+        with open(filename,"w",encoding="utf-8") as file:
 
-            file.write(
-                "=" * 70 + "\n"
-            )
+            file.write("=" * 70 + "\n")
+            file.write("WAGNER-WHITIN OPTIMAL SOLUTION\n")
+            file.write("=" * 70 + "\n")
 
-            file.write(
-                "WAGNER-WHITIN OPTIMAL SOLUTION\n"
-            )
-
-            file.write(
-                "=" * 70 + "\n"
-            )
-
-            file.write(
-                "Generated: "
-                + datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-                + "\n\n"
-            )
+            file.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
 
             # Input information
-
-            file.write(
-                "INPUT INFORMATION\n"
-            )
-
-            file.write(
-                "-" * 70 + "\n"
-            )
-
-            file.write(
-                f"Number of Years : "
-                f"{results['n']}\n"
-            )
-
-            file.write(
-                f"Setup Cost      : "
-                f"RM {results['setup_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Holding Cost    : "
-                f"RM {results['holding_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Variable Cost   : "
-                f"RM {results['variable_cost']:.2f}\n\n"
-            )
+            file.write("INPUT INFORMATION\n")
+            file.write("-" * 70 + "\n")
+            file.write(f"Number of Years : "f"{results['n']}\n")
+            file.write(f"Setup Cost      : "f"RM {results['setup_cost']:.2f}\n")
+            file.write(f"Holding Cost    : "f"RM {results['holding_cost']:.2f}\n")
+            file.write(f"Variable Cost   : "f"RM {results['variable_cost']:.2f}\n\n")
 
             # Demand
+            file.write("DEMAND BY YEAR\n")
+            file.write("-" * 70 + "\n")
 
-            file.write(
-                "DEMAND BY YEAR\n"
-            )
+            for i in range(results["n"]):
 
-            file.write(
-                "-" * 70 + "\n"
-            )
-
-            for i in range(
-                results["n"]
-            ):
-
-                file.write(
-                    f"Year {i + 1:<3}: "
-                    f"{results['demands'][i]:.2f}\n"
-                )
+                file.write(f"Year {i + 1:<3}: "f"{results['demands'][i]:.2f}\n")
 
             # Ordering plan
+            file.write("\nOPTIMAL ORDERING PLAN\n")
 
-            file.write(
-                "\nOPTIMAL ORDERING PLAN\n"
-            )
-
-            file.write(
-                "-" * 70 + "\n"
-            )
+            file.write("-" * 70 + "\n")
 
             file.write(
                 f"{'Year':<10}"
                 f"{'Demand':<15}"
                 f"{'Order Qty':<15}"
-                f"{'Covers Until':<15}\n"
-            )
+                f"{'Covers Until':<15}\n")
 
-            file.write(
-                "-" * 70 + "\n"
-            )
+            file.write("-" * 70 + "\n")
 
-            for i in range(
-                results["n"]
-            ):
+            for i in range(results["n"]):
 
-                if (
-                    results["order_schedule"][i]
-                    > 0
-                ):
-
-                    qty = (
-                        results["order_schedule"][i]
-                    )
-
-                    end = (
-                        results["order_end_period"][i]
-                    )
+                if (results["order_schedule"][i]> 0):
+                    qty = ( results["order_schedule"][i])
+                    end = (results["order_end_year"][i])
 
                 else:
-
                     qty = 0
-
                     end = "-"
 
                 file.write(
                     f"{i + 1:<10}"
                     f"{results['demands'][i]:<15.2f}"
                     f"{qty:<15.2f}"
-                    f"{str(end):<15}\n"
-                )
+                    f"{str(end):<15}\n")
 
             # Cost breakdown
 
-            file.write(
-                "\nCOST BREAKDOWN\n"
-            )
-
-            file.write(
-                "-" * 70 + "\n"
-            )
-
-            file.write(
-                f"Total Setup Cost   : "
-                f"RM {results['total_setup_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Total Holding Cost : "
-                f"RM {results['total_holding_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Total Variable Cost: "
-                f"RM {results['total_variable_cost']:.2f}\n"
-            )
-
-            file.write(
-                "-" * 70 + "\n"
-            )
-
-            file.write(
-                f"TOTAL OPTIMAL COST : "
-                f"RM {results['total_cost']:.2f}\n"
-            )
-
-            file.write(
-                "=" * 70 + "\n"
-            )
+            file.write( "\nCOST BREAKDOWN\n")
+            file.write("-" * 70 + "\n")
+            file.write( f"Total Setup Cost   : "f"RM {results['total_setup_cost']:.2f}\n")
+            file.write( f"Total Holding Cost : "f"RM {results['total_holding_cost']:.2f}\n") 
+            file.write( f"Total Variable Cost: "f"RM {results['total_variable_cost']:.2f}\n")
+            file.write( "-" * 70 + "\n")
+            file.write( f"TOTAL OPTIMAL COST : "f"RM {results['total_cost']:.2f}\n")
+            file.write("=" * 70 + "\n")
 
         return True
 
 
-# =========================================================
-# MODIFIED / ADDED BY GUI MEMBER
 # GRAPHICAL USER INTERFACE
-# =========================================================
 
 class WagnerWhitinGUI:
 
     def __init__(self, root):
 
         self.root = root
+        self.root.title("Wagner-Whitin Algorithm")
 
-        self.root.title(
-            "Wagner-Whitin Algorithm"
-        )
-
-        self.root.geometry(
-            "1150x750"
-        )
+        self.root.geometry("1150x750")
 
         # Store demand input boxes
-
         self.demand_entries = []
 
         # Store calculation result
-
         self.results = None
 
         # Build GUI
-
         self.build_gui()
 
-    # =====================================================
-    # MODIFIED / ADDED
     # BUILD GUI
-    # =====================================================
 
     def build_gui(self):
 
         # Title
-
         title = ttk.Label(
             self.root,
             text="WAGNER-WHITIN ALGORITHM",
-            font=("Arial", 22, "bold")
-        )
+            font=("Arial", 22, "bold"))
 
-        title.pack(
-            pady=15
-        )
+        title.pack(pady=15)
 
-        subtitle = ttk.Label(
-            self.root,
-            text=(
+        subtitle = ttk.Label(self.root,text=(
                 "Dynamic Lot Size Model "
-                "| Duration is measured in Years"
-            ),
-            font=("Arial", 11)
-        )
+                "| Duration is measured in Years"),
+            font=("Arial", 11))
 
-        subtitle.pack(
-            pady=(0, 10)
-        )
+        subtitle.pack(pady=(0, 10))
 
-        # =================================================
         # INPUT FRAME
-        # =================================================
 
-        input_frame = ttk.LabelFrame(
-            self.root,
-            text="Input Information",
-            padding=15
-        )
+        input_frame = ttk.LabelFrame(self.root,text="Input Information",padding=15)
 
-        input_frame.pack(
-            fill="x",
-            padx=20,
-            pady=5
-        )
+        input_frame.pack( fill="x",padx=20,pady=5)
 
         # Number of years
-
-        ttk.Label(
-            input_frame,
-            text="Number of Years:"
-        ).grid(
+        ttk.Label(input_frame,text="Number of Years:").grid(
             row=0,
             column=0,
             padx=10,
-            pady=7
-        )
+            pady=7)
 
-        self.period_entry = ttk.Entry(
-            input_frame,
-            width=15
-        )
-
-        self.period_entry.grid(
-            row=0,
-            column=1
-        )
+        self.period_entry = ttk.Entry(input_frame, width=15)
+        self.period_entry.grid(row=0,column=1) 
 
         # Setup cost
-
-        ttk.Label(
-            input_frame,
-            text="Setup Cost:"
-        ).grid(
+        ttk.Label(input_frame,text="Setup Cost:").grid(
             row=0,
             column=2,
-            padx=10
-        )
+            padx=10)
 
-        self.setup_entry = ttk.Entry(
-            input_frame,
-            width=15
-        )
+        self.setup_entry = ttk.Entry(input_frame,width=15)
 
-        self.setup_entry.grid(
-            row=0,
-            column=3
-        )
+        self.setup_entry.grid(row=0,column=3)
 
         # Holding cost
-
-        ttk.Label(
-            input_frame,
-            text="Holding Cost / Unit / Year:"
-        ).grid(
+        ttk.Label(input_frame,text="Holding Cost / Unit / Year:").grid(
             row=1,
             column=0,
             padx=10,
-            pady=7
-        )
+            pady=7)
 
-        self.holding_entry = ttk.Entry(
-            input_frame,
-            width=15
-        )
-
-        self.holding_entry.grid(
-            row=1,
-            column=1
-        )
+        self.holding_entry = ttk.Entry(input_frame,width=15)
+        self.holding_entry.grid( row=1,column=1)
 
         # Variable cost
 
-        ttk.Label(
-            input_frame,
-            text="Variable Cost / Unit:"
-        ).grid(
+        ttk.Label(input_frame,text="Variable Cost / Unit:").grid(
             row=1,
             column=2,
-            padx=10
-        )
+            padx=10)
 
-        self.variable_entry = ttk.Entry(
-            input_frame,
-            width=15
-        )
+        self.variable_entry = ttk.Entry(input_frame,width=15)
 
-        self.variable_entry.grid(
-            row=1,
-            column=3
-        )
+        self.variable_entry.grid(row=1,column=3)
 
         # Create demand fields
-
-        ttk.Button(
-            input_frame,
-            text="Create Demand Fields",
-            command=self.create_demands
-        ).grid(
+        ttk.Button(input_frame,text="Create Demand Fields",command=self.create_demands).grid(
             row=0,
             column=4,
             rowspan=2,
             padx=20,
-            ipadx=10
-        )
+            ipadx=10)
 
-        # =================================================
         # DEMAND FRAME
-        # =================================================
+        self.demand_frame = ttk.LabelFrame(self.root,text="Demand for Each Year",padding=15)
+        self.demand_frame.pack(fill="x", padx=20,pady=8)
 
-        self.demand_frame = ttk.LabelFrame(
-            self.root,
-            text="Demand for Each Year",
-            padding=15
-        )
-
-        self.demand_frame.pack(
-            fill="x",
-            padx=20,
-            pady=8
-        )
-
-        # =================================================
         # BUTTON FRAME
-        # =================================================
-
-        button_frame = ttk.Frame(
-            self.root
-        )
-
-        button_frame.pack(
-            pady=10
-        )
+        button_frame = ttk.Frame(self.root)
+        button_frame.pack(pady=10)
 
         # Calculate
-
-        ttk.Button(
-            button_frame,
-            text="Calculate",
-            command=self.calculate
-        ).grid(
+        ttk.Button(button_frame,text="Calculate",command=self.calculate).grid(
             row=0,
             column=0,
-            padx=5
-        )
+            padx=5)
 
         # Read Input
-
-        ttk.Button(
-            button_frame,
-            text="Read Input",
-            command=self.read_input
-        ).grid(
+        ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
             row=0,
             column=1,
-            padx=5
-        )
+            padx=5)
 
         # Write Input
-
-        ttk.Button(
-            button_frame,
-            text="Write Input",
-            command=self.save_input
-        ).grid(
+        ttk.Button(button_frame,text="Write Input",command=self.save_input).grid(
             row=0,
             column=2,
-            padx=5
-        )
+            padx=5)
 
         # Export CSV
-
-        ttk.Button(
-            button_frame,
-            text="Export CSV",
-            command=self.export_csv
-        ).grid(
+        ttk.Button(button_frame,text="Export CSV",command=self.export_csv).grid(
             row=0,
             column=3,
-            padx=5
-        )
+            padx=5)
 
         # Export Report
-
-        ttk.Button(
-            button_frame,
-            text="Export Report",
-            command=self.export_report
-        ).grid(
+        ttk.Button(button_frame,text="Export Report",command=self.export_report).grid(
             row=0,
             column=4,
-            padx=5
-        )
+            padx=5)
 
         # Clear
-
-        ttk.Button(
-            button_frame,
-            text="Clear",
-            command=self.clear
-        ).grid(
+        ttk.Button(button_frame,text="Clear",command=self.clear).grid(
             row=0,
             column=5,
-            padx=5
-        )
+            padx=5)
 
         # Exit
-
-        ttk.Button(
-            button_frame,
-            text="Exit",
-            command=self.root.destroy
-        ).grid(
+        ttk.Button(button_frame,text="Exit",command=self.root.destroy).grid(
             row=0,
             column=6,
-            padx=5
-        )
+            padx=5)
 
-        ttk.Button(
-            button_frame,
-            text="Demand Trend",
-            command=self.show_demand_trend
-        ).grid(
+        ttk.Button(button_frame,text="Demand Trend",command=self.show_demand_trend).grid(
             row=0,
             column=7,
-            padx=5
-        )
+            padx=5)
 
-        ttk.Button(
-            button_frame,
-            text="Network Flow",
-            command=self.show_network_flow
-        ).grid(
+        ttk.Button(button_frame,text="Network Flow",command=self.show_network_flow).grid(
             row=0,
             column=8,
-            padx=5
-        )
+            padx=5)
 
-        # =================================================
         # RESULT TABLE
-        # =================================================
-
         result_frame = ttk.LabelFrame(
             self.root,
             text="Optimal Ordering Plan",
-            padding=10
-        )
+            padding=10)
 
         result_frame.pack(
             fill="both",
             expand=True,
             padx=20,
-            pady=5
-        )
+            pady=5)
 
         columns = (
             "Year",
             "Demand",
             "Order Quantity",
-            "Covers Until"
-        )
+            "Covers Until")
 
         self.table = ttk.Treeview(
             result_frame,
             columns=columns,
-            show="headings"
-        )
+            show="headings")
 
         for column in columns:
 
-            self.table.heading(
-                column,
-                text=column
-            )
+            self.table.heading(column,text=column)
+            self.table.column(column,anchor="center",width=180)
 
-            self.table.column(
-                column,
-                anchor="center",
-                width=180
-            )
+        self.table.pack(fill="both",expand=True)
 
-        self.table.pack(
-            fill="both",
-            expand=True
-        )
-
-        # =================================================
         # COST DISPLAY
-        # =================================================
 
         self.cost_label = ttk.Label(
             self.root,
             text="Total Optimal Cost: RM 0.00",
-            font=("Arial", 16, "bold")
-        )
+            font=("Arial", 16, "bold"))
 
-        self.cost_label.pack(
-            pady=10
-        )
+        self.cost_label.pack(pady=10)
 
         # Status bar
-
         self.status = ttk.Label(
             self.root,
             text="Ready.",
             relief="sunken",
-            anchor="w"
-        )
+            anchor="w")
 
         self.status.pack(
             side="bottom",
-            fill="x"
-        )
+            fill="x")
 
-    # =====================================================
-    # MODIFIED / ADDED
     # CREATE DEMAND INPUT BOXES
-    # =====================================================
-
     def create_demands(self):
 
-        for widget in (
-            self.demand_frame.winfo_children()
-        ):
+        for widget in (self.demand_frame.winfo_children()):
 
             widget.destroy()
 
         self.demand_entries = []
 
         try:
-
-            n = validate_number(
-                self.period_entry.get(),
-                integer=True,
-                allow_zero=False
-            )
+            n = validate_number(self.period_entry.get(),integer=True,allow_zero=False)
 
         except ValueError as error:
-
-            messagebox.showerror(
-                "Input Error",
-                str(error)
-            )
-
+            messagebox.showerror("Input Error",str(error))
             return
 
         for i in range(n):
-
             row = i // 5
-
             column = (i % 5) * 2
-
-            ttk.Label(
-                self.demand_frame,
-                text=f"Year {i + 1}:"
-            ).grid(
+            ttk.Label(self.demand_frame,text=f"Year {i + 1}:").grid(
                 row=row,
                 column=column,
                 padx=8,
-                pady=5
-            )
+                pady=5)
 
-            entry = ttk.Entry(
-                self.demand_frame,
-                width=12
-            )
+            entry = ttk.Entry(self.demand_frame,width=12)
 
             entry.grid(
                 row=row,
                 column=column + 1,
                 padx=8,
-                pady=5
-            )
+                pady=5)
 
-            self.demand_entries.append(
-                entry
-            )
+            self.demand_entries.append(entry)
 
-        self.status.config(
-            text=(
+        self.status.config(text=(
                 f"Demand fields created for "
-                f"{n} years."
-            )
-        )
+                f"{n} years."))
 
-    # =====================================================
-    # MODIFIED / ADDED
     # GET INPUT FROM GUI
-    # =====================================================
-
     def get_inputs(self):
 
         n = validate_number(
             self.period_entry.get(),
             integer=True,
-            allow_zero=False
-        )
+            allow_zero=False)
 
         s = validate_number(
             self.setup_entry.get(),
-            allow_zero=False
-        )
+            allow_zero=False)
 
         h = validate_number(
             self.holding_entry.get(),
-            allow_zero=False
-        )
+            allow_zero=False)
 
         v = validate_number(
             self.variable_entry.get(),
-            allow_zero=False
-        )
+            allow_zero=False)
 
-        if len(
-            self.demand_entries
-        ) != n:
+        if len(self.demand_entries) != n:
 
-            raise ValueError(
-                "Please click 'Create Demand Fields' "
-                "before entering demand."
-            )
+            raise ValueError("Please click 'Create Demand Fields' before entering demand.")
 
         demands = []
 
         for entry in self.demand_entries:
+            demand = validate_number(entry.get(),allow_zero=True)
 
-            demand = validate_number(
-                entry.get(),
-                allow_zero=True
-            )
+            demands.append(demand)
 
-            demands.append(
-                demand
-            )
+        return (n,demands,s,h,v)
 
-        return (
-            n,
-            demands,
-            s,
-            h,
-            v
-        )
-
-    # =====================================================
-    # MODIFIED / ADDED
     # RUN CALCULATION FROM GUI
-    # =====================================================
-
     def calculate(self):
 
         try:
-
-            n, demands, s, h, v = (
-                self.get_inputs()
-            )
+            n, demands, s, h, v = (self.get_inputs())
 
             # Call the ORIGINAL WWA calculation
-
-            self.results = (
-                wagner_whitin_backward(
-                    n,
-                    demands,
-                    s,
-                    h,
-                    v
-                )
-            )
+            self.results = (wagner_whitin_backward(n,demands,s,h,v))
 
             # Display returned results
-
             self.display_results()
-
-            self.status.config(
-                text="Calculation completed successfully."
-            )
+            self.status.config(text="Calculation completed successfully.")
 
         except Exception as error:
+            messagebox.showerror("Calculation Error",str(error))
 
-            messagebox.showerror(
-                "Calculation Error",
-                str(error)
-            )
-
-    # =====================================================
-    # MODIFIED / ADDED
     # DISPLAY RESULTS IN GUI
-    # =====================================================
-
+ 
     def display_results(self):
 
         # Clear old results
-
-        for item in (
-            self.table.get_children()
-        ):
-
-            self.table.delete(
-                item
-            )
+        for item in (self.table.get_children()):
+            self.table.delete(item)
 
         # Insert new results
+        for i in range(self.results["n"]):
 
-        for i in range(
-            self.results["n"]
-        ):
+            if (self.results["order_schedule"][i]> 0):
 
-            if (
-                self.results["order_schedule"][i]
-                > 0
-            ):
-
-                order = (
-                    f"{self.results['order_schedule'][i]:.2f}"
-                )
-
-                end = (
-                    self.results["order_end_period"][i]
-                )
+                order = (f"{self.results['order_schedule'][i]:.2f}")
+                end = (self.results["order_end_year"][i])
 
             else:
 
                 order = "-"
-
                 end = "-"
 
-            self.table.insert(
-                "",
-                "end",
+            self.table.insert("","end",
                 values=(
                     i + 1,
                     f"{self.results['demands'][i]:.2f}",
                     order,
-                    end
-                )
-            )
+                    end))
 
         self.cost_label.config(
             text=(
                 "Total Optimal Cost: "
-                f"RM {self.results['total_cost']:,.2f}"
-            )
-        )
+                f"RM {self.results['total_cost']:,.2f}"))
 
-    # =====================================================
-    # MODIFIED / ADDED
     # SAVE / WRITE INPUT
-    # =====================================================
-
     def save_input(self):
 
         try:
-
             data = self.get_inputs()
-
-            success = (
-                FileManager.write_input(
-                    *data
-                )
-            )
+            success = (FileManager.write_input(*data))
 
             if success:
 
                 messagebox.showinfo(
                     "Success",
-                    "Input data has been saved successfully."
-                )
+                    "Input data has been saved successfully.")
 
-                self.status.config(
-                    text="Input data saved."
-                )
+                self.status.config(text="Input data saved.")
 
         except Exception as error:
 
-            messagebox.showerror(
-                "Save Error",
-                str(error)
-            )
+            messagebox.showerror("Save Error",str(error))
 
-    # =====================================================
-    # MODIFIED / ADDED
     # READ INPUT
-    # =====================================================
-
     def read_input(self):
 
         try:
 
             data = FileManager.read_input()
-
             if data is None:
-
                 return
-
+            
             n, demands, s, h, v = data
 
             # Fill number of years
-
-            self.period_entry.delete(
-                0,
-                tk.END
-            )
-
-            self.period_entry.insert(
-                0,
-                str(n)
-            )
+            self.period_entry.delete(0,tk.END)
+            self.period_entry.insert(0,str(n))
 
             # Fill setup cost
-
-            self.setup_entry.delete(
-                0,
-                tk.END
-            )
-
-            self.setup_entry.insert(
-                0,
-                str(s)
-            )
+            self.setup_entry.delete(0,tk.END)
+            self.setup_entry.insert(0,str(s))
 
             # Fill holding cost
-
-            self.holding_entry.delete(
-                0,
-                tk.END
-            )
-
-            self.holding_entry.insert(
-                0,
-                str(h)
-            )
+            self.holding_entry.delete(0,tk.END)
+            self.holding_entry.insert(0,str(h))
 
             # Fill variable cost
-
-            self.variable_entry.delete(
-                0,
-                tk.END
-            )
-
-            self.variable_entry.insert(
-                0,
-                str(v)
-            )
+            self.variable_entry.delete(0,tk.END)
+            self.variable_entry.insert(0,str(v))
 
             # Create demand fields
-
             self.create_demands()
 
             # Fill demand
-
             for i in range(n):
 
-                self.demand_entries[i].insert(
-                    0,
-                    str(demands[i])
-                )
+                self.demand_entries[i].insert(0,str(demands[i]))
 
-            self.status.config(
-                text="Input file loaded successfully."
-            )
+            self.status.config(text="Input file loaded successfully.")
 
             messagebox.showinfo(
                 "Success",
-                "Input data loaded successfully."
-            )
+                "Input data loaded successfully.")
 
         except Exception as error:
 
             messagebox.showerror(
                 "Read Error",
-                str(error)
-            )
+                str(error))
 
-    # =====================================================
-    # MODIFIED / ADDED
     # EXPORT CSV
-    # =====================================================
 
     def export_csv(self):
 
         if self.results is None:
-
             messagebox.showwarning(
                 "No Results",
-                "Please calculate the WWA solution first."
-            )
+                "Please calculate the WWA solution first.")
 
             return
 
@@ -1487,24 +817,15 @@ class WagnerWhitinGUI:
 
                 messagebox.showinfo(
                     "Success",
-                    "Results exported to CSV successfully."
-                )
+                    "Results exported to CSV successfully.")
 
-                self.status.config(
-                    text="Results exported to CSV."
-                )
+                self.status.config(text="Results exported to CSV.")
 
         except Exception as error:
 
-            messagebox.showerror(
-                "Export Error",
-                str(error)
-            )
+            messagebox.showerror("Export Error",str(error))
 
-    # =====================================================
-    # MODIFIED / ADDED
-    # EXPORT TEXT REPORT
-    # =====================================================
+    # EXPORT TEXT REPOR
 
     def export_report(self):
 
@@ -1529,19 +850,15 @@ class WagnerWhitinGUI:
 
                 messagebox.showinfo(
                     "Success",
-                    "WWA report exported successfully."
-                )
+                    "WWA report exported successfully.")
 
-                self.status.config(
-                    text="Report exported."
-                )
+                self.status.config(text="Report exported.")
 
         except Exception as error:
 
             messagebox.showerror(
                 "Export Error",
-                str(error)
-            )
+                str(error))
 
     def show_demand_trend(self):
 
@@ -1549,8 +866,7 @@ class WagnerWhitinGUI:
         if self.results is None:
             messagebox.showwarning(
                 "No Results",
-                "Please calculate the WWA solution first."
-            )
+                "Please calculate the WWA solution first.")
             return
 
         # Create a new window
@@ -1571,8 +887,7 @@ class WagnerWhitinGUI:
         # Create matplotlib figure
         figure = Figure(
             figsize=(8, 5),
-            dpi=100
-        )
+            dpi=100)
 
         axis = figure.add_subplot(111)
 
@@ -1582,50 +897,38 @@ class WagnerWhitinGUI:
             demands,
             marker="o",
             linewidth=2,
-            markersize=6
-        )
+            markersize=6)
 
         # Graph title
         axis.set_title(
             "Demand Trend Over Planning Horizon",
             fontsize=14,
-            fontweight="bold"
-        )
+            fontweight="bold")
 
         # Axis labels
-        axis.set_xlabel(
-            "Year"
-        )
-
-        axis.set_ylabel(
-            "Demand"
-        )
+        axis.set_xlabel("Year")
+        axis.set_ylabel("Demand")
 
         # Show every year on x-axis
-        axis.set_xticks(
-            years
-        )
+        axis.set_xticks(years)
 
         # Add grid
         axis.grid(
             True,
             linestyle="--",
-            alpha=0.5
-        )
+            alpha=0.5)
 
         # Display demand value above every point
         for year, demand in zip(
             years,
-            demands
-        ):
+            demands):
 
             axis.annotate(
                 f"{demand:.2f}",
                 (year, demand),
                 textcoords="offset points",
                 xytext=(0, 8),
-                ha="center"
-            )
+                ha="center")
 
         # Adjust layout
         figure.tight_layout()
@@ -1633,8 +936,7 @@ class WagnerWhitinGUI:
         # Put matplotlib graph inside Tkinter window
         canvas = FigureCanvasTkAgg(
             figure,
-            master=graph_window
-        )
+            master=graph_window)
 
         canvas.draw()
 
@@ -1642,13 +944,9 @@ class WagnerWhitinGUI:
             fill="both",
             expand=True,
             padx=10,
-            pady=10
-        )
+            pady=10)
 
-        # =====================================================
-    # ADDED
     # DIRECTED NETWORK FLOW DIAGRAM
-    # =====================================================
 
     def show_network_flow(self):
 
@@ -1656,90 +954,47 @@ class WagnerWhitinGUI:
         if self.results is None:
             messagebox.showwarning(
                 "No Results",
-                "Please calculate the WWA solution first."
-            )
+                "Please calculate the WWA solution first.")
             return
 
-        # =================================================
         # CREATE WINDOW
-        # =================================================
-
         flow_window = tk.Toplevel(self.root)
+        flow_window.title("Directed Network Flow Diagram")
+        flow_window.geometry("1200x750")
 
-        flow_window.title(
-            "Directed Network Flow Diagram"
-        )
-
-        flow_window.geometry(
-            "1200x750"
-        )
-
-        # =================================================
-        # GET WWA RESULTS
-        # =================================================
+        # GET WWA RESULT
 
         n = self.results["n"]
-
         demands = self.results["demands"]
+        order_schedule = (self.results["order_schedule"])
+        order_end_year = (self.results["order_end_year"])
 
-        order_schedule = (
-            self.results["order_schedule"]
-        )
-
-        order_end_period = (
-            self.results["order_end_period"]
-        )
-
-        # =================================================
         # CREATE MATPLOTLIB FIGURE
-        # =================================================
-
-        figure = Figure(
-            figsize=(12, 7),
-            dpi=100
-        )
-
+        figure = Figure(figsize=(12, 7),dpi=100)
         axis = figure.add_subplot(111)
 
-        # =================================================
         # NODE STRUCTURE
-        #
         # Node i represents the beginning of period i.
-        #
         # Node n+1 represents the END of planning horizon.
-        #
         # Arc i -> j means:
-        #
         # Order in period i covers demand from
         # period i through period j-1.
-        # =================================================
 
         node_count = n + 1
-
-        x_positions = list(
-            range(1, node_count + 1)
-        )
+        x_positions = list(range(1, node_count + 1))
 
         # All nodes are placed on the same horizontal line
         y_position = 0
 
-        # =================================================
         # DRAW ALL NODES
-        # =================================================
-
         axis.scatter(
             x_positions,
             [y_position] * node_count,
             s=1000,
-            zorder=5
-        )
-
-        # =================================================
+            zorder=5)
+        
         # NODE LABELS
-        # =================================================
-
         for i in range(1, n + 1):
-
             axis.text(
                 i,
                 y_position,
@@ -1749,11 +1004,9 @@ class WagnerWhitinGUI:
                 fontsize=10,
                 fontweight="bold",
                 color="white",
-                zorder=6
-            )
+                zorder=6)
 
         # End node
-
         axis.text(
             n + 1,
             y_position,
@@ -1763,13 +1016,9 @@ class WagnerWhitinGUI:
             fontsize=10,
             fontweight="bold",
             color="white",
-            zorder=6
-        )
+            zorder=6)
 
-        # =================================================
         # DEMAND LABELS
-        # =================================================
-
         for i in range(1, n + 1):
 
             axis.text(
@@ -1778,24 +1027,15 @@ class WagnerWhitinGUI:
                 f"Demand = {demands[i - 1]:.2f}",
                 ha="center",
                 va="top",
-                fontsize=9
-            )
+                fontsize=9)
 
-        # =================================================
         # DRAW ALL POSSIBLE DIRECTED ARCS
-        #
         # i -> j
-        #
         # means an order placed at period i covers
         # periods i through j-1.
-        # =================================================
 
         for start in range(1, n + 1):
-
-            for end in range(
-                start + 1,
-                n + 2
-            ):
+            for end in range(start + 1,n + 2):
 
                 # Calculate arc height.
                 # Short arcs are lower,
@@ -1803,13 +1043,9 @@ class WagnerWhitinGUI:
 
                 distance = end - start
 
-                arc_height = (
-                    0.25 +
-                    distance * 0.12
-                )
+                arc_height = (0.25 + distance * 0.12)
 
                 # Draw possible arc
-
                 axis.annotate(
                     "",
                     xy=(end, 0),
@@ -1826,54 +1062,30 @@ class WagnerWhitinGUI:
                     zorder=1
                 )
 
-        # =================================================
         # DRAW OPTIMAL WWA ARCS
-        # =================================================
 
         for i in range(n):
 
             # Check whether an order is placed
             if order_schedule[i] > 0:
 
-                start_period = i + 1
+                start_year = i + 1
+                end_year = (order_end_year[i])
 
-                end_period = (
-                    order_end_period[i]
-                )
 
-                # IMPORTANT:
-                #
-                # If order at Year 1 covers
-                # Year 1 -> Year 3,
-                #
-                # the network arc is:
-                #
-                # Y1 -> Y4
-                #
-                # because the destination node represents
-                # the period AFTER the covered demand.
-                #
+                # If order at Year 1 covers Year 1 -> Year 3,
+                # the network arc is:Y1 -> Y4
+                # because the destination node represents the period AFTER the covered demand.#
 
-                network_end = (
-                    end_period + 1
-                )
-
-                distance = (
-                    network_end -
-                    start_period
-                )
-
-                arc_height = (
-                    0.25 +
-                    distance * 0.12
-                )
+                network_end = (end_year + 1)
+                distance = (network_end - start_year)
+                arc_height = (0.25 + distance * 0.12)
 
                 # Draw optimal arc
-
                 axis.annotate(
                     "",
                     xy=(network_end, 0),
-                    xytext=(start_period, 0),
+                    xytext=(start_year, 0),
                     arrowprops=dict(
                         arrowstyle="->",
                         linewidth=3,
@@ -1886,38 +1098,23 @@ class WagnerWhitinGUI:
                     zorder=4
                 )
 
-                # =================================================
                 # ORDER LABEL
-                # =================================================
-
-                middle = (
-                    start_period +
-                    network_end
-                ) / 2
-
-                label_height = (
-                    arc_height +
-                    0.15
-                )
+                middle = (start_year + network_end) / 2
+                label_height = (arc_height + 0.15)
 
                 # Determine coverage description
-
-                if end_period == start_period:
-
+                if end_year == start_year:
                     coverage_text = (
                         f"Order = "
                         f"{order_schedule[i]:.2f}\n"
-                        f"Covers Y{start_period}"
-                    )
+                        f"Covers Y{start_year}")
 
                 else:
-
                     coverage_text = (
                         f"Order = "
                         f"{order_schedule[i]:.2f}\n"
-                        f"Covers Y{start_period}"
-                        f"-Y{end_period}"
-                    )
+                        f"Covers Y{start_year}"
+                        f"-Y{end_year}")
 
                 axis.text(
                     middle,
@@ -1931,65 +1128,32 @@ class WagnerWhitinGUI:
                     zorder=7
                 )
 
-        # =================================================
         # TITLE
-        # =================================================
-
         axis.set_title(
             "Directed Network Flow Diagram - "
             "Wagner-Whitin Optimal Ordering",
             fontsize=15,
             fontweight="bold",
-            pad=20
-        )
-
-        # =================================================
+            pad=20)
+        
         # AXIS LABEL
-        # =================================================
+        axis.set_xlabel("Planning Period",fontsize=11)
 
-        axis.set_xlabel(
-            "Planning Period",
-            fontsize=11
-        )
-
-        # =================================================
         # X-AXIS
-        # =================================================
+        axis.set_xlim(0.5,n + 1.5)
+        axis.set_xticks(x_positions)
 
-        axis.set_xlim(
-            0.5,
-            n + 1.5
-        )
-
-        axis.set_xticks(
-            x_positions
-        )
-
-        # =================================================
         # Y-AXIS
-        # =================================================
-
-        axis.set_ylim(
-            -1.5,
-            2.8
-        )
-
+        axis.set_ylim(-1.5,2.8)
         axis.set_yticks([])
 
-        # =================================================
         # GRID
-        # =================================================
-
         axis.grid(
             axis="x",
             linestyle="--",
-            alpha=0.25
-        )
+            alpha=0.25)
 
-        # =================================================
         # LEGEND / EXPLANATION
-        # =================================================
-
         axis.text(
             0.02,
             0.97,
@@ -2005,43 +1169,27 @@ class WagnerWhitinGUI:
             )
         )
 
-        # =================================================
+
         # REMOVE TOP / RIGHT SPINES
-        # =================================================
-
         axis.spines["top"].set_visible(False)
-
         axis.spines["right"].set_visible(False)
 
-        # =================================================
         # ADJUST LAYOUT
-        # =================================================
-
         figure.tight_layout()
 
-        # =================================================
         # DISPLAY MATPLOTLIB IN TKINTER
-        # =================================================
-
         canvas = FigureCanvasTkAgg(
             figure,
-            master=flow_window
-        )
+            master=flow_window)
 
         canvas.draw()
-
         canvas.get_tk_widget().pack(
             fill="both",
             expand=True,
             padx=10,
-            pady=10
-        )
+            pady=10)
 
-    # =====================================================
-    # MODIFIED / ADDED
     # CLEAR GUI
-    # =====================================================
-
     def clear(self):
 
         self.period_entry.delete(
@@ -2090,32 +1238,19 @@ class WagnerWhitinGUI:
             text="All fields cleared."
         )
 
-
-# =========================================================
-# MODIFIED / ADDED
 # MAIN PROGRAM
-# =========================================================
-
 def main():
 
     # Create the main GUI window
-
     root = tk.Tk()
 
     # Create the WWA GUI application
-
     app = WagnerWhitinGUI(root)
 
     # Start the GUI
-
     root.mainloop()
 
-
-# =========================================================
-# MODIFIED / ADDED
 # PROGRAM START
-# =========================================================
-
 if __name__ == "__main__":
 
     main()
