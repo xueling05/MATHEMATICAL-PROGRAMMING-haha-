@@ -497,12 +497,12 @@ class WagnerWhitinGUI:
             column=6,
             padx=5)
 
-        ttk.Button(button_frame,text="Demand Trend",command=self.show_demand_trend).grid(
+        ttk.Button(button_frame,text="Trend Line Graph",command=self.show_demand_trend).grid(
             row=0,
             column=7,
             padx=5)
 
-        ttk.Button(button_frame,text="Network Flow",command=self.show_network_flow).grid(
+        ttk.Button(button_frame,text="Network Flow Diagram",command=self.show_network_flow).grid(
             row=0,
             column=8,
             padx=5)
