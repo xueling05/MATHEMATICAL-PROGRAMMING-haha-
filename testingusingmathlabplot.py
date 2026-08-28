@@ -497,7 +497,7 @@ class WagnerWhitinGUI:
             column=6,
             padx=5)
 
-        ttk.Button(button_frame,text="Trend Line Graph",command=self.show_demand_trend).grid(
+        ttk.Button(button_frame,text="Demand Trend Line Graph",command=self.show_demand_trend).grid(
             row=0,
             column=7,
             padx=5)
