@@ -1496,8 +1496,7 @@ class WagnerWhitinGUI:
         # ============================================================
 
         axis.set_title(
-            "Directed Network Flow Diagram\n"
-            "Wagner-Whitin Multiple Optimal Paths",
+            "Directed Network Flow Diagram\n",
 
             fontsize=16,
             fontweight="bold",
