@@ -596,11 +596,6 @@ class WagnerWhitinGUI:
             column=0,
             padx=5)
 
-        ttk.Button(button_frame,text="Show Optimal Paths",command=self.show_optimal_paths).grid(
-            row=0,
-            column=9,
-            padx=5)
-
         # Read Input
         ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
             row=0,
@@ -654,22 +649,36 @@ class WagnerWhitinGUI:
             pady=5)
 
         columns = (
+            "Solution",
             "Year",
             "Demand",
             "Order Quantity",
-            "Covers Until")
+            "Covers Until"
+        )
 
         self.table = ttk.Treeview(
             result_frame,
             columns=columns,
-            show="headings")
+            show="headings"
+        )
 
         for column in columns:
 
-            self.table.heading(column,text=column)
-            self.table.column(column,anchor="center",width=180)
+            self.table.heading(
+                column,
+                text=column
+            )
 
-        self.table.pack(fill="both",expand=True)
+            self.table.column(
+                column,
+                anchor="center",
+                width=150
+            )
+
+        self.table.pack(
+            fill="both",
+            expand=True
+        )
 
         # COST DISPLAY
 
@@ -783,36 +792,146 @@ class WagnerWhitinGUI:
 
     # DISPLAY RESULTS IN GUI
  
+    # DISPLAY ALL OPTIMAL RESULTS IN MAIN TABLE
     def display_results(self):
 
-        # Clear old results
-        for item in (self.table.get_children()):
+        # ============================================================
+        # CLEAR OLD RESULTS
+        # ============================================================
+
+        for item in self.table.get_children():
             self.table.delete(item)
 
-        # Insert new results
-        for i in range(self.results["n"]):
+        # ============================================================
+        # GET RESULTS
+        # ============================================================
 
-            if (self.results["order_schedule"][i]> 0):
+        optimal_paths = self.results["optimal_paths"]
+        demands = self.results["demands"]
 
-                order = (f"{self.results['order_schedule'][i]:.2f}")
-                end = (self.results["order_end_year"][i])
+        total_cost = self.results["total_cost"]
 
-            else:
+        # Number of optimal solutions
+        path_count = len(optimal_paths)
 
-                order = "-"
-                end = "-"
+        # ============================================================
+        # DISPLAY EVERY OPTIMAL PATH
+        # ============================================================
 
-            self.table.insert("","end",
-                values=(
-                    i + 1,
-                    f"{self.results['demands'][i]:.2f}",
-                    order,
-                    end))
+        for path_number, path in enumerate(
+            optimal_paths,
+            start=1
+            
+        ):
+
+            # --------------------------------------------------------
+            # Calculate order quantity for every year
+            # --------------------------------------------------------
+
+            order_quantities = [0.0] * len(demands)
+
+            order_end_years = [0] * len(demands)
+
+            for start_year, end_year in path:
+
+                # Calculate quantity covered by this order
+                qty = sum(
+                    demands[
+                        start_year - 1:end_year
+                    ]
+                )
+
+                order_quantities[
+                    start_year - 1
+                ] = qty
+
+                order_end_years[
+                    start_year - 1
+                ] = end_year
+
+            # --------------------------------------------------------
+            # DISPLAY EVERY YEAR
+            # --------------------------------------------------------
+
+            for year in range(
+                1,
+                len(demands) + 1
+            ):
+
+                order_qty = order_quantities[
+                    year - 1
+                ]
+
+                # ----------------------------------------------------
+                # If order is placed in this year
+                # ----------------------------------------------------
+
+                if order_qty > 0:
+
+                    order_text = (
+                        f"{order_qty:.2f}"
+                    )
+
+                    covers_until = (
+                        order_end_years[
+                            year - 1
+                        ]
+                    )
+
+                # ----------------------------------------------------
+                # No order in this year
+                # ----------------------------------------------------
+
+                else:
+
+                    order_text = "-"
+
+                    covers_until = "-"
+
+                # ----------------------------------------------------
+                # Insert into table
+                # ----------------------------------------------------
+
+                self.table.insert(
+                    "",
+                    "end",
+                    values=(
+                        f"Path {path_number}",
+                        year,
+                        f"{demands[year - 1]:.2f}",
+                        order_text,
+                        covers_until
+                    )
+                )
+
+            if path_number < path_count:
+                    self.table.insert("", "end", values=("", "", "", "", ""))
+
+                
+
+        # ============================================================
+        # UPDATE COST DISPLAY
+        # ============================================================
 
         self.cost_label.config(
             text=(
-                "Total Optimal Cost: "
-                f"RM {self.results['total_cost']:,.2f}"))
+                f"Optimal Solutions: {path_count}    |    "
+                f"Minimum Total Cost: "
+                f"RM {total_cost:,.2f}"
+            )
+        )
+
+        # ============================================================
+        # UPDATE STATUS
+        # ============================================================
+
+        self.status.config(
+            text=(
+                f"Calculation completed. "
+                f"{path_count} optimal solution(s) found "
+                f"with the same minimum total cost."
+            )
+        )
 
 
     # READ INPUT
@@ -1014,53 +1133,96 @@ class WagnerWhitinGUI:
 
     # DIRECTED NETWORK FLOW DIAGRAM
 
+        # DIRECTED NETWORK FLOW DIAGRAM - MULTIPLE OPTIMAL PATHS
     def show_network_flow(self):
 
         # Check whether calculation has been performed
         if self.results is None:
             messagebox.showwarning(
                 "No Results",
-                "Please calculate the WWA solution first.")
+                "Please calculate the WWA solution first."
+            )
             return
 
-        # CREATE WINDOW
-        flow_window = tk.Toplevel(self.root)
-        flow_window.title("Directed Network Flow Diagram")
-        flow_window.geometry("1200x750")
-
-        # GET WWA RESULT
+        # ============================================================
+        # GET WWA RESULTS
+        # ============================================================
 
         n = self.results["n"]
         demands = self.results["demands"]
-        order_schedule = (self.results["order_schedule"])
-        order_end_year = (self.results["order_end_year"])
 
+        # IMPORTANT:
+        # Use ALL optimal paths instead of only the first solution
+        optimal_paths = self.results["optimal_paths"]
+
+        total_cost = self.results["total_cost"]
+
+        # Check whether optimal paths exist
+        if not optimal_paths:
+            messagebox.showwarning(
+                "No Optimal Path",
+                "No optimal path was found."
+            )
+            return
+
+        # ============================================================
+        # CREATE WINDOW
+        # ============================================================
+
+        flow_window = tk.Toplevel(self.root)
+        flow_window.title("Multiple Optimal Network Flow Paths")
+        flow_window.geometry("1400x850")
+
+        # ============================================================
         # CREATE MATPLOTLIB FIGURE
-        figure = Figure(figsize=(12, 7),dpi=100)
+        # ============================================================
+
+        figure = Figure(
+            figsize=(14, 8),
+            dpi=100
+        )
+
         axis = figure.add_subplot(111)
 
+        # ============================================================
         # NODE STRUCTURE
+        #
         # Node i represents the beginning of period i.
-        # Node n+1 represents the END of planning horizon.
-        # Arc i -> j means:
-        # Order in period i covers demand from
-        # period i through period j-1.
+        #
+        # Y1 -> Y2 means:
+        # Order in Year 1 covers demand of Year 1.
+        #
+        # Y1 -> Y4 means:
+        # Order in Year 1 covers Year 1, Year 2 and Year 3.
+        #
+        # END = n + 1
+        # ============================================================
 
         node_count = n + 1
-        x_positions = list(range(1, node_count + 1))
 
-        # All nodes are placed on the same horizontal line
+        x_positions = list(
+            range(1, node_count + 1)
+        )
+
         y_position = 0
 
+        # ============================================================
         # DRAW ALL NODES
+        # ============================================================
+
         axis.scatter(
             x_positions,
             [y_position] * node_count,
             s=1000,
-            zorder=5)
-        
+            zorder=5
+        )
+
+        # ============================================================
         # NODE LABELS
+        # ============================================================
+
         for i in range(1, n + 1):
+
             axis.text(
                 i,
                 y_position,
@@ -1070,9 +1232,11 @@ class WagnerWhitinGUI:
                 fontsize=10,
                 fontweight="bold",
                 color="white",
-                zorder=6)
+                zorder=6
+            )
 
-        # End node
+        # END NODE
+
         axis.text(
             n + 1,
             y_position,
@@ -1082,9 +1246,13 @@ class WagnerWhitinGUI:
             fontsize=10,
             fontweight="bold",
             color="white",
-            zorder=6)
+            zorder=6
+        )
 
+        # ============================================================
         # DEMAND LABELS
+        # ============================================================
+
         for i in range(1, n + 1):
 
             axis.text(
@@ -1093,167 +1261,426 @@ class WagnerWhitinGUI:
                 f"Demand = {demands[i - 1]:.2f}",
                 ha="center",
                 va="top",
-                fontsize=9)
+                fontsize=9
+            )
 
+        # ============================================================
         # DRAW ALL POSSIBLE DIRECTED ARCS
-        # i -> j
-        # means an order placed at period i covers
-        # periods i through j-1.
+        #
+        # These are all possible ordering decisions.
+        # They are shown in light gray.
+        # ============================================================
 
         for start in range(1, n + 1):
-            for end in range(start + 1,n + 2):
 
-                # Calculate arc height.
-                # Short arcs are lower,
-                # long arcs are higher.
+            for end in range(start + 1, n + 2):
 
                 distance = end - start
 
-                arc_height = (0.25 + distance * 0.12)
+                # Keep the arcs separated
+                arc_height = (
+                    0.20 + distance * 0.08
+                )
 
-                # Draw possible arc
                 axis.annotate(
                     "",
                     xy=(end, 0),
                     xytext=(start, 0),
+
                     arrowprops=dict(
                         arrowstyle="->",
                         linewidth=1,
-                        alpha=0.18,
+                        alpha=0.15,
                         color="gray",
+
                         connectionstyle=(
                             f"arc3,rad=-{arc_height}"
                         )
                     ),
+
                     zorder=1
                 )
 
-        # DRAW OPTIMAL WWA ARCS
+        # ============================================================
+        # DRAW ALL OPTIMAL PATHS
+        #
+        # Each optimal path is drawn separately.
+        #
+        # Example:
+        #
+        # Path 1:
+        # Y1 -> Y3 -> Y5 -> END
+        #
+        # Path 2:
+        # Y1 -> Y2 -> Y5 -> END
+        #
+        # Both paths have the same optimal cost.
+        # ============================================================
 
-        for i in range(n):
+        # Different line heights allow overlapping paths
+        # to be seen more clearly.
 
-            # Check whether an order is placed
-            if order_schedule[i] > 0:
+        path_count = len(optimal_paths)
 
-                start_year = i + 1
-                end_year = (order_end_year[i])
+        # Height used to separate multiple paths
+        path_spacing = 0.10
 
+        for path_index, path in enumerate(
+            optimal_paths,
+            start=1
+        ):
 
-                # If order at Year 1 covers Year 1 -> Year 3,
-                # the network arc is:Y1 -> Y4
-                # because the destination node represents the period AFTER the covered demand.#
+            # --------------------------------------------------------
+            # Calculate path-specific vertical position
+            # --------------------------------------------------------
 
-                network_end = (end_year + 1)
-                distance = (network_end - start_year)
-                arc_height = (0.25 + distance * 0.12)
+            if path_count == 1:
 
+                path_offset = 0
+
+            else:
+
+                path_offset = (
+                    (path_index - 1)
+                    - (path_count - 1) / 2
+                ) * path_spacing
+
+            # Make sure first path is slightly higher
+            # so that the paths are easier to distinguish.
+
+            path_height_offset = path_offset
+
+            # --------------------------------------------------------
+            # Draw every arc belonging to this optimal path
+            # --------------------------------------------------------
+
+            for start_year, end_year in path:
+
+                # Convert WWA period representation into
+                # network node representation.
+                #
+                # Example:
+                #
+                # WWA:
+                # (1, 3)
+                #
+                # means:
+                # Order at Year 1 covers Year 1-3.
+                #
+                # Network:
+                # Y1 -> Y4
+                #
+                network_start = start_year
+                network_end = end_year + 1
+
+                distance = (
+                    network_end - network_start
+                )
+
+                # Base arc height
+                base_height = (
+                    0.25 + distance * 0.10
+                )
+
+                # Add path separation
+                arc_height = (
+                    base_height
+                    + path_height_offset
+                )
+
+                # ----------------------------------------------------
                 # Draw optimal arc
+                # ----------------------------------------------------
+
                 axis.annotate(
                     "",
-                    xy=(network_end, 0),
-                    xytext=(start_year, 0),
+                    xy=(
+                        network_end,
+                        0
+                    ),
+
+                    xytext=(
+                        network_start,
+                        0
+                    ),
+
                     arrowprops=dict(
                         arrowstyle="->",
                         linewidth=3,
-                        alpha=1,
-                        color="red",
+                        alpha=0.90,
+
+                        # Automatically select matplotlib
+                        # default color cycle
+                        color=f"C{(path_index - 1) % 10}",
+
                         connectionstyle=(
                             f"arc3,rad=-{arc_height}"
                         )
                     ),
+
                     zorder=4
                 )
 
-                # ORDER LABEL
-                middle = (start_year + network_end) / 2
-                label_height = (arc_height + 0.15)
+                # ----------------------------------------------------
+                # LABEL POSITION
+                # ----------------------------------------------------
 
-                # Determine coverage description
-                if end_year == start_year:
+                middle = (
+                    network_start
+                    + network_end
+                ) / 2
+
+                label_height = (
+                    arc_height + 0.15
+                )
+
+                # ----------------------------------------------------
+                # ORDER QUANTITY
+                # ----------------------------------------------------
+
+                order_quantity = sum(
+                    demands[
+                        start_year - 1:end_year
+                    ]
+                )
+
+                # ----------------------------------------------------
+                # COVERAGE DESCRIPTION
+                # ----------------------------------------------------
+
+                if start_year == end_year:
+
                     coverage_text = (
-                        f"Order = "
-                        f"{order_schedule[i]:.2f}\n"
-                        f"Covers Y{start_year}")
+                        f"P{path_index}: "
+                        f"Order = {order_quantity:.2f}\n"
+                        f"Covers Y{start_year}"
+                    )
 
                 else:
+
                     coverage_text = (
-                        f"Order = "
-                        f"{order_schedule[i]:.2f}\n"
+                        f"P{path_index}: "
+                        f"Order = {order_quantity:.2f}\n"
                         f"Covers Y{start_year}"
-                        f"-Y{end_year}")
+                        f"-Y{end_year}"
+                    )
+
+                # ----------------------------------------------------
+                # DRAW LABEL
+                # ----------------------------------------------------
 
                 axis.text(
                     middle,
                     label_height,
                     coverage_text,
+
                     ha="center",
                     va="bottom",
-                    fontsize=9,
+
+                    fontsize=8,
                     fontweight="bold",
-                    color="red",
-                    zorder=7
+
+                    color=f"C{(path_index - 1) % 10}",
+
+                    zorder=7,
+
+                    bbox=dict(
+                        boxstyle="round,pad=0.25",
+                        facecolor="white",
+                        alpha=0.75
+                    )
                 )
 
+        # ============================================================
         # TITLE
+        # ============================================================
+
         axis.set_title(
-            "Directed Network Flow Diagram - "
-            "Wagner-Whitin Optimal Ordering",
-            fontsize=15,
+            "Directed Network Flow Diagram\n"
+            "Wagner-Whitin Multiple Optimal Paths",
+
+            fontsize=16,
             fontweight="bold",
-            pad=20)
-        
+            pad=25
+        )
+
+        # ============================================================
         # AXIS LABEL
-        axis.set_xlabel("Planning Period",fontsize=11)
+        # ============================================================
 
+        axis.set_xlabel(
+            "Planning Period",
+            fontsize=11
+        )
+
+        # ============================================================
         # X-AXIS
-        axis.set_xlim(0.5,n + 1.5)
-        axis.set_xticks(x_positions)
+        # ============================================================
 
+        axis.set_xlim(
+            0.5,
+            n + 1.5
+        )
+
+        axis.set_xticks(
+            x_positions
+        )
+
+        # ============================================================
         # Y-AXIS
-        axis.set_ylim(-1.5,2.8)
+        # ============================================================
+
+        # Increase the Y range because multiple paths
+        # may create labels at different heights.
+
+        max_path_height = (
+            0.25
+            + n * 0.10
+            + abs(path_spacing * path_count)
+            + 1.0
+        )
+
+        axis.set_ylim(
+            -1.6,
+            max_path_height
+        )
+
         axis.set_yticks([])
 
+        # ============================================================
         # GRID
+        # ============================================================
+
         axis.grid(
             axis="x",
             linestyle="--",
-            alpha=0.25)
+            alpha=0.25
+        )
 
-        # LEGEND / EXPLANATION
+        # ============================================================
+        # LEGEND / INFORMATION BOX
+        # ============================================================
+
+        legend_text = (
+            "NETWORK FLOW INFORMATION\n"
+            "--------------------------------\n"
+            "Gray arrows = Possible ordering decisions\n"
+            "Colored arrows = Optimal WWA paths\n\n"
+            f"Number of Optimal Paths = {path_count}\n"
+            f"Minimum Total Cost = RM {total_cost:,.2f}"
+        )
+
         axis.text(
             0.02,
             0.97,
-            "Gray arrows = possible ordering decisions\n"
-            "Red arrows = optimal WWA ordering decisions",
+
+            legend_text,
+
             transform=axis.transAxes,
+
             fontsize=9,
+
             verticalalignment="top",
+
             bbox=dict(
                 boxstyle="round",
                 facecolor="white",
-                alpha=0.8
+                alpha=0.9
             )
         )
 
+        # ============================================================
+        # OPTIMAL PATH SUMMARY
+        # ============================================================
 
+        summary_text = (
+            "OPTIMAL PATHS\n"
+            "==============================\n"
+        )
+
+        for path_number, path in enumerate(
+            optimal_paths,
+            start=1
+        ):
+
+            path_text = " → ".join(
+
+                f"Y{start}"
+                if start == end
+
+                else f"Y{start}-Y{end}"
+
+                for start, end in path
+            )
+
+            # Add END to the network path
+            if path:
+
+                last_end = path[-1][1]
+
+                path_text += f" → END"
+
+            summary_text += (
+                f"Path {path_number}: "
+                f"{path_text}\n"
+            )
+
+        summary_text += (
+            "\n"
+            f"Same Minimum Cost: "
+            f"RM {total_cost:,.2f}"
+        )
+
+        # Put summary at bottom-left
+        axis.text(
+            0.02,
+            0.02,
+
+            summary_text,
+
+            transform=axis.transAxes,
+
+            fontsize=9,
+
+            verticalalignment="bottom",
+
+            bbox=dict(
+                boxstyle="round",
+                facecolor="white",
+                alpha=0.90
+            )
+        )
+
+        # ============================================================
         # REMOVE TOP / RIGHT SPINES
+        # ============================================================
+
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
 
+        # ============================================================
         # ADJUST LAYOUT
+        # ============================================================
+
         figure.tight_layout()
 
+        # ============================================================
         # DISPLAY MATPLOTLIB IN TKINTER
+        # ============================================================
+
         canvas = FigureCanvasTkAgg(
             figure,
-            master=flow_window)
+            master=flow_window
+        )
 
         canvas.draw()
+
         canvas.get_tk_widget().pack(
             fill="both",
             expand=True,
             padx=10,
-            pady=10)
+            pady=10
+        )
 
         
     def show_optimal_paths(self):
