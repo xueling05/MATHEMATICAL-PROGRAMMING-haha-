@@ -1184,8 +1184,7 @@ class WagnerWhitinGUI:
 
         ttk.Label(
             path_window,
-            text="The following ordering plans have the same minimum total cost.\n"
-                "You may choose any one of these optimal solutions.",
+            text="The following ordering plans have the same minimum total cost.\n",
             font=("Arial", 10)
         ).pack(pady=(0, 10))
 
