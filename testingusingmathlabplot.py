@@ -869,7 +869,7 @@ class WagnerWhitinGUI:
                 if order_qty > 0:
 
                     order_text = (
-                        f"{order_qty:.2f}"
+                        f"{order_qty:.0f}"
                     )
 
                     covers_until = (
@@ -898,7 +898,7 @@ class WagnerWhitinGUI:
                     values=(
                         f"Path {path_number}",
                         year,
-                        f"{demands[year - 1]:.2f}",
+                        f"{demands[year - 1]:.0f}",
                         order_text,
                         covers_until
                     )
