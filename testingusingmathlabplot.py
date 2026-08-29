@@ -370,6 +370,12 @@ class WagnerWhitinGUI:
 
         self.root.geometry("1150x750")
 
+        self.build_gui()
+
+    # BUILD GUI
+    def build_gui(self):
+
+
         # Store demand input boxes
         self.demand_entries = []
 
