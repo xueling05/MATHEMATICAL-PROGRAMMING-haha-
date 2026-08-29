@@ -13,14 +13,14 @@ def wagner_whitin_backward(n, demands, s, h, v):
     # Initialize DP tables
     f = [0.0] * (n + 2)
 
-    next_order_end = [0] * (n + 1)
+    # Store all optimal choices for each period
+    optimal_choices = [[] for _ in range(n + 1)]
 
     # Backward Dynamic Programming Calculation
     for i in range(n, 0, -1):
 
         min_cost = float("inf")
-
-        best_k = -1
+        best_ks =[]
 
         for k in range(i, n + 1):
 
@@ -36,31 +36,56 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
             total_cost = (s + current_holding_cost + current_variable_cost + f[k + 1])
 
-            if total_cost < min_cost:
+            # Found a better solution
+            if total_cost < min_cost - 1e-9:
                 min_cost = total_cost
-                best_k = k
+                best_ks = [k]
 
+            # Found another solution with the same cost
+            elif abs(total_cost - min_cost) < 1e-9:
+
+                best_ks.append(k)
+
+        # Store ALL optimal choices
         f[i] = min_cost
-        next_order_end[i] = best_k
+        optimal_choices[i] = best_ks
+
+    # Generate all optimal paths
+    optimal_paths = []
+
+    def generate_paths(current_period, path):
+
+        if current_period > n:
+            optimal_paths.append(path.copy())
+            return
+
+        for end_year in optimal_choices[current_period]:
+
+            path.append((current_period, end_year))
+
+            generate_paths(end_year + 1,path)
+
+            path.pop()
+
+    generate_paths(1, [])
 
     # Forward Backtracking
 
     order_schedule = [0.0] * n
     order_end_year = [0] * n
 
-    curr = 1
+    if optimal_paths:
 
-    while curr <= n:
+        first_path = optimal_paths[0]
 
-        end_year = next_order_end[curr]
+        for start_year, end_year in first_path:
 
-        qty = sum(demands[curr - 1:end_year])
+            qty = sum(
+                demands[start_year - 1:end_year]
+            )
 
-        order_schedule[curr - 1] = qty
-
-        order_end_year[curr - 1] = end_year
-
-        curr = end_year + 1
+            order_schedule[start_year - 1] = qty
+            order_end_year[start_year - 1] = end_year
 
     # Cost Breakdown
 
@@ -91,18 +116,18 @@ def wagner_whitin_backward(n, demands, s, h, v):
         "holding_cost": h,
         "variable_cost": v,
 
+        #first optimal solution
         "order_schedule": order_schedule,
-
         "order_end_year": order_end_year,
-
         "total_setup_cost": total_setup_cost,
-
         "total_holding_cost": total_holding_cost,
-
         "total_variable_cost": total_variable_cost,
+        "total_cost": total_cost,
 
-        "total_cost": total_cost
-    }
+         #optimal choices
+        "optimal_choices": optimal_choices,
+        "optimal_paths": optimal_paths
+        }
 
 
 # INPUT VALIDATION FOR GUI
@@ -375,6 +400,8 @@ class WagnerWhitinGUI:
     # BUILD GUI
     def build_gui(self):
 
+        self.demand_entries = []
+        self.results = None
 
         # Store demand input boxes
         self.demand_entries = []
@@ -473,6 +500,11 @@ class WagnerWhitinGUI:
             column=0,
             padx=5)
 
+        ttk.Button(button_frame,text="Show Optimal Paths",command=self.show_optimal_paths).grid(
+            row=0,
+            column=9,
+            padx=5)
+
         # Read Input
         ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
             row=0,
@@ -562,6 +594,8 @@ class WagnerWhitinGUI:
         self.status.pack(
             side="bottom",
             fill="x")
+
+        
 
     # CREATE DEMAND INPUT BOXES
     def create_demands(self):
@@ -1124,6 +1158,95 @@ class WagnerWhitinGUI:
             expand=True,
             padx=10,
             pady=10)
+
+        
+    def show_optimal_paths(self):
+
+        if self.results is None:
+            messagebox.showwarning(
+            "No Results",
+            "Please calculate the WWA solution first."
+            )
+            return
+
+        paths = self.results["optimal_paths"]
+        demands = self.results["demands"]
+
+        path_window = tk.Toplevel(self.root)
+        path_window.title("Multiple Optimal Solutions")
+        path_window.geometry("700x600")
+
+        ttk.Label(
+            path_window,
+            text=f"Number of Optimal Solutions: {len(paths)}",
+            font=("Arial", 14, "bold")
+        ).pack(pady=10)
+
+        ttk.Label(
+            path_window,
+            text="The following ordering plans have the same minimum total cost.\n"
+                "You may choose any one of these optimal solutions.",
+            font=("Arial", 10)
+        ).pack(pady=(0, 10))
+
+        text = tk.Text(
+            path_window,
+            width=70,
+            height=30,
+            font=("Courier New", 10)
+            )
+
+        text.pack(
+            fill="both",
+            expand=True,
+            padx=15,
+            pady=10
+            )
+
+        for path_number, path in enumerate(paths, start=1):
+
+            text.insert(
+                tk.END,
+                f"OPTIMAL SOLUTION {path_number}\n"
+            )
+
+            text.insert(
+                tk.END,
+                "-" * 40 + "\n"
+            )
+
+            # Create order quantity for every year
+            order_quantities = [0.0] * len(demands)
+
+            for start_year, end_year in path:
+
+                qty = sum(
+                    demands[start_year - 1:end_year]
+                )
+
+                order_quantities[start_year - 1] = qty
+
+            # Display every year
+            for year in range(1, len(demands) + 1):
+
+                if order_quantities[year - 1] > 0:
+                    text.insert(
+                        tk.END,
+                        f"Year {year:<3}: "
+                        f"{order_quantities[year - 1]:.2f}\n"
+                    )
+                else:
+                    text.insert(
+                        tk.END,
+                        f"Year {year:<3}: -\n"
+                    )
+
+            text.insert(
+                tk.END,
+                "\n"
+            )
+
+        text.config(state="disabled")
 
     # CLEAR GUI
     def clear(self):
