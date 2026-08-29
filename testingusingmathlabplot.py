@@ -205,61 +205,114 @@ class FileManager:
             raise ValueError(f"Invalid input file:\n{error}")
 
         return (n, demands, s, h, v)
-        
+
     # EXPORT RESULTS TO CSV
- 
+
     @staticmethod
     def export_csv(results):
- 
-         if results is None:
- 
-             raise ValueError("No calculation result available.")
- 
-         filename = filedialog.asksaveasfilename(
-             title="Export Results to CSV",
-             defaultextension=".csv",
-             filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
-         )
- 
-         if not filename:
-             return False
- 
-         with open(filename, "w", newline="", encoding="utf-8-sig") as file:
- 
-             writer = csv.writer(file)
- 
-             # Title
-             writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTION"])
-             writer.writerow([])
-             
-             # Ordering plan
-             writer.writerow(["Year", "Demand", "Order Quantity", "Order Covers Until"])
- 
-             for i in range(results["n"]):
- 
-                 if (results["order_schedule"][i] > 0):
- 
-                     order_quantity = (results["order_schedule"][i])
-                     covers_until = (results["order_end_year"][i])
- 
-                 else:
- 
-                     order_quantity = 0
-                     covers_until = "-"
- 
-                 writer.writerow([i + 1, results["demands"][i], order_quantity, covers_until])
-             
-             writer.writerow([])
- 
-             # Cost breakdown
-             writer.writerow(["COST BREAKDOWN"])
-             writer.writerow(["Total Setup Cost", results["total_setup_cost"]])
-             writer.writerow(["Total Holding Cost", results["total_holding_cost"]])
-             writer.writerow(["Total Variable Cost", results["total_variable_cost"]])
-             writer.writerow([])
-             writer.writerow(["TOTAL OPTIMAL COST", results["total_cost"]])
- 
-         return True
+
+        if results is None:
+            raise ValueError("No calculation result available.")
+
+        filename = filedialog.asksaveasfilename(
+            title="Export Results to CSV",
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+
+        if not filename:
+            return False
+
+        try:
+
+            with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+
+                writer = csv.writer(file)
+
+                # TITLE
+                writer.writerow(["WAGNER-WHITIN OPTIMAL SOLUTIONS"])
+                writer.writerow([])
+
+                # INPUT INFORMATION
+                writer.writerow(["INPUT INFORMATION"])
+                writer.writerow(["Number of Years", results["n"]])
+                writer.writerow(["Setup Cost", results["setup_cost"]])
+                writer.writerow(["Holding Cost", results["holding_cost"]])
+                writer.writerow(["Variable Cost", results["variable_cost"]])
+                writer.writerow([])
+
+                # DEMAND INFORMATION
+                writer.writerow(["DEMAND BY YEAR"])
+                writer.writerow(["Year", "Demand"])
+
+                for i in range(results["n"]):
+
+                    writer.writerow([i + 1, results["demands"][i]])
+
+                writer.writerow([])
+
+                # FIRST OPTIMAL ORDERING PLAN
+                writer.writerow(["SELECTED OPTIMAL ORDERING PLAN"])
+                writer.writerow(["Year", "Demand", "Order Quantity", "Covers Until"])
+
+                for i in range(results["n"]):
+
+                    if results["order_schedule"][i] > 0:
+
+                        order_quantity = (results["order_schedule"][i])
+
+                        covers_until = (results["order_end_year"][i])
+
+                    else:
+
+                        order_quantity = 0
+                        covers_until = "-"
+
+                    writer.writerow([i + 1, results["demands"][i], order_quantity, covers_until])
+
+                writer.writerow([])
+
+                # ALL OPTIMAL SOLUTIONS
+                writer.writerow(["ALL OPTIMAL SOLUTIONS"])
+                writer.writerow(["Solution", "Ordering Path", "Total Optimal Cost"])
+
+                optimal_paths = results["optimal_paths"]
+
+                for path_number, path in enumerate(optimal_paths, start=1):
+
+                    # Convert path into readable format
+                    path_text = " → ".join(
+                        f"Year {start}"
+                        if start == end
+                        else f"Year {start}-{end}"
+                        for start, end in path
+                    )
+
+                    writer.writerow([
+                        f"Solution {path_number}",
+                        path_text,
+                        results["total_cost"]
+                    ])
+
+                writer.writerow([])
+
+                # NUMBER OF OPTIMAL SOLUTIONS
+                writer.writerow(["Number of Optimal Solutions", len(optimal_paths)])
+                writer.writerow([])
+
+                # COST BREAKDOWN
+                writer.writerow(["COST BREAKDOWN"])
+                writer.writerow(["Total Setup Cost", results["total_setup_cost"]])
+                writer.writerow(["Total Holding Cost", results["total_holding_cost"]])
+                writer.writerow(["Total Variable Cost", results["total_variable_cost"]])
+                writer.writerow(["TOTAL OPTIMAL COST", results["total_cost"]])
+
+            return True
+
+        except Exception as error:
+
+            raise ValueError(f"Unable to export CSV file:\n{error}")
+
     
     # EXPORT TEXT REPORT
 
@@ -267,7 +320,6 @@ class FileManager:
     def export_report(results):
 
         if results is None:
-
             raise ValueError("No calculation result available.")
 
         filename = filedialog.asksaveasfilename(
@@ -279,110 +331,154 @@ class FileManager:
         if not filename:
             return False
 
-        with open(filename, "w", encoding="utf-8") as file:
+        try:
 
-            # Report heading
-            file.write("=" * 70 + "\n")
-            file.write("WAGNER-WHITIN OPTIMAL SOLUTION\n")
-            file.write("=" * 70 + "\n")
-            file.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+            with open(filename, "w", encoding="utf-8") as file:
 
-            # Input information
-            file.write("INPUT INFORMATION\n")
-            file.write("-" * 70 + "\n")
-            file.write(
-                f"Number of Years : " 
-                f"{results['n']}\n"
-            )
+                # TITLE
+                file.write("=" * 70 + "\n")
+                file.write("WAGNER-WHITIN OPTIMAL SOLUTIONS\n")
+                file.write("=" * 70 + "\n")
+                file.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
 
-            file.write(
-                f"Setup Cost      : "
-                f"RM {results['setup_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Holding Cost    : "
-                f"RM {results['holding_cost']:.2f}\n"
-            )
-
-            file.write(
-                f"Variable Cost   : "
-                f"RM {results['variable_cost']:.2f}\n\n"
-            )
-
-            # Demand
-            file.write("DEMAND BY YEAR\n")
-            file.write("-" * 70 + "\n")
-
-            for i in range(results["n"]):
+                # INPUT INFORMATION
+                file.write("INPUT INFORMATION\n")
+                file.write("-" * 70 + "\n")
 
                 file.write(
-                    f"Year {i + 1:<3}: "
-                    f"{results['demands'][i]:.2f}\n"
+                    f"Number of Years : "
+                    f"{results['n']}\n"
                 )
-
-            # Optimal ordering plan
-            file.write("\nOPTIMAL ORDERING PLAN\n")
-            file.write("-" * 70 + "\n")
-
-            file.write(
-                f"{'Year':<10}"
-                f"{'Demand':<15}"
-                f"{'Order Qty':<15}"
-                f"{'Covers Until':<15}\n"
-            )
-
-            file.write("-" * 70 + "\n")
-
-            for i in range(results["n"]):
-
-                if (results["order_schedule"][i] > 0):
-
-                    qty = (results["order_schedule"][i])
-                    end = (results["order_end_year"][i])
-
-                else:
-
-                    qty = 0
-                    end = "-"
 
                 file.write(
-                    f"{i + 1:<10}"
-                    f"{results['demands'][i]:<15.2f}"
-                    f"{qty:<15.2f}"
-                    f"{str(end):<15}\n"
+                    f"Setup Cost      : "
+                    f"RM {results['setup_cost']:.2f}\n"
                 )
 
-            # Cost breakdown
-            file.write("\nCOST BREAKDOWN\n")
-            file.write("-" * 70 + "\n")
+                file.write(
+                    f"Holding Cost    : "
+                    f"RM {results['holding_cost']:.2f}\n"
+                )
 
-            file.write(
-                f"Total Setup Cost   : "
-                f"RM {results['total_setup_cost']:.2f}\n"
-            )
+                file.write(
+                    f"Variable Cost   : "
+                    f"RM {results['variable_cost']:.2f}\n"
+                )
 
-            file.write(
-                f"Total Holding Cost : "
-                f"RM {results['total_holding_cost']:.2f}\n"
-            )
+                # DEMAND
+                file.write("\nDEMAND BY YEAR\n")
+                file.write("-" * 70 + "\n")
 
-            file.write(
-                f"Total Variable Cost: "
-                f"RM {results['total_variable_cost']:.2f}\n"
-            )
+                for i in range(results["n"]):
 
-            file.write("-" * 70 + "\n")
+                    file.write(
+                        f"Year {i + 1:<3}: "
+                        f"{results['demands'][i]:.2f}\n"
+                    )
 
-            file.write(
-                f"TOTAL OPTIMAL COST : "
-                f"RM {results['total_cost']:.2f}\n"
-            )
+                # SELECTED OPTIMAL ORDERING PLAN
+                file.write("\nSELECTED OPTIMAL ORDERING PLAN\n")
+                file.write("-" * 70 + "\n")
 
-            file.write("=" * 70 + "\n")
+                file.write(
+                    f"{'Year':<10}"
+                    f"{'Demand':<15}"
+                    f"{'Order Qty':<15}"
+                    f"{'Covers Until':<15}\n"
+                )
 
-        return True
+                file.write("-" * 70 + "\n")
 
+                for i in range(results["n"]):
+
+                    if results["order_schedule"][i] > 0:
+
+                        qty = (results["order_schedule"][i])
+
+                        end = (results["order_end_year"][i])
+
+                    else:
+
+                        qty = 0
+                        end = "-"
+
+                    file.write(
+                        f"{i + 1:<10}"
+                        f"{results['demands'][i]:<15.2f}"
+                        f"{qty:<15.2f}"
+                        f"{str(end):<15}\n"
+                    )
+
+                # ALL OPTIMAL SOLUTIONS
+                file.write("\n\nALL OPTIMAL SOLUTIONS\n")
+                file.write("=" * 70 + "\n")
+
+                optimal_paths = results["optimal_paths"]
+
+                file.write(
+                    f"Number of Optimal Solutions: "
+                    f"{len(optimal_paths)}\n"
+                )
+
+                file.write(
+                    f"Minimum Total Cost: "
+                    f"RM {results['total_cost']:.2f}\n\n"
+                )
+
+                # Display every optimal path
+                for path_number, path in enumerate(optimal_paths, start=1):
+
+                    file.write(f"OPTIMAL SOLUTION {path_number}\n")
+                    file.write("-" * 50 + "\n")
+                    file.write("Ordering Path: ")
+
+                    path_text = " → ".join(
+                        f"Year {start}"
+                        if start == end
+                        else f"Year {start}-{end}"
+                        for start, end in path
+                    )
+
+                    file.write(path_text + "\n")
+
+                    file.write(
+                        f"Total Cost: "
+                        f"RM {results['total_cost']:.2f}\n\n"
+                    )
+
+                # COST BREAKDOWN
+                file.write("COST BREAKDOWN\n")
+                file.write("=" * 70 + "\n")
+
+                file.write(
+                    f"Total Setup Cost   : "
+                    f"RM {results['total_setup_cost']:.2f}\n"
+                )
+
+                file.write(
+                    f"Total Holding Cost : "
+                    f"RM {results['total_holding_cost']:.2f}\n"
+                )
+
+                file.write(
+                    f"Total Variable Cost: "
+                    f"RM {results['total_variable_cost']:.2f}\n"
+                )
+
+                file.write("-" * 70 + "\n")
+
+                file.write(
+                    f"TOTAL OPTIMAL COST : "
+                    f"RM {results['total_cost']:.2f}\n"
+                )
+
+                file.write("=" * 70 + "\n")
+
+            return True
+
+        except Exception as error:
+
+            raise ValueError(f"Unable to export report:\n{error}")
 
 # GRAPHICAL USER INTERFACE
 
