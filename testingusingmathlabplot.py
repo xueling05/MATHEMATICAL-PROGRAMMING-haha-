@@ -744,22 +744,10 @@ class WagnerWhitinGUI:
     # GET INPUT FROM GUI
     def get_inputs(self):
 
-        n = validate_number(
-            self.period_entry.get(),
-            integer=True,
-            allow_zero=False)
-
-        s = validate_number(
-            self.setup_entry.get(),
-            allow_zero=False)
-
-        h = validate_number(
-            self.holding_entry.get(),
-            allow_zero=False)
-
-        v = validate_number(
-            self.variable_entry.get(),
-            allow_zero=False)
+        n = validate_number(self.period_entry.get(),integer=True,allow_zero=False)
+        s = validate_number(self.setup_entry.get(),allow_zero=False)
+        h = validate_number(self.holding_entry.get(),allow_zero=False)
+        v = validate_number(self.variable_entry.get(),allow_zero=False)
 
         if len(self.demand_entries) != n:
 
