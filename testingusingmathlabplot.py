@@ -776,31 +776,18 @@ class WagnerWhitinGUI:
 
     # RUN CALCULATION FROM GUI
     def calculate(self):
-        try:
-            n, demands, s, h, v = self.get_inputs()
+            try:
+                n, demands, s, h, v = (self.get_inputs())
 
-            # Call the WWA calculation
-            self.results = wagner_whitin_backward(
-                n, demands, s, h, v
-            )
+                # Call the ORIGINAL WWA calculation
+                self.results = (wagner_whitin_backward(n,demands,s,h,v))
 
-            # Display returned results
-            self.display_results()
-            self.status.config(
-                text="Calculation completed successfully."
-            )
+                # Display returned results
+                self.display_results()
+                self.status.config(text="Calculation completed successfully.")
 
-        except ValueError as error:
-            messagebox.showerror(
-                "Input Error",
-                str(error)
-            )
-
-        except Exception as error:
-            messagebox.showerror(
-                "Calculation Error",
-                str(error)
-            )
+            except Exception as error:
+                messagebox.showerror("Calculation Error",str(error))
 
     # DISPLAY RESULTS IN GUI
  
