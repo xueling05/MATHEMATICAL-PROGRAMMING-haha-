@@ -1134,7 +1134,7 @@ class WagnerWhitinGUI:
     # DIRECTED NETWORK FLOW DIAGRAM
     def show_network_flow(self):
 
-        # Check whether calculation has been performed
+    # Check whether calculation has been performed
         if self.results is None:
             messagebox.showwarning(
                 "No Results",
@@ -1142,15 +1142,15 @@ class WagnerWhitinGUI:
             )
             return
 
-        # GET WWA RESULTS
+        # Get WWA results
         n = self.results["n"]
         demands = self.results["demands"]
 
-        # all solution
+        # Get all optimal paths
         optimal_paths = self.results["optimal_paths"]
         total_cost = self.results["total_cost"]
 
-        # Check whether optimal paths
+        # Check if optimal paths exist
         if not optimal_paths:
             messagebox.showwarning(
                 "No Optimal Path",
@@ -1158,12 +1158,12 @@ class WagnerWhitinGUI:
             )
             return
 
-        # create window
+        # Create window
         flow_window = tk.Toplevel(self.root)
         flow_window.title("Multiple Optimal Network Flow Paths")
         flow_window.geometry("1400x850")
 
-        # cretae figure
+        # Create figure
         figure = Figure(
             figsize=(14, 8),
             dpi=100
@@ -1171,16 +1171,12 @@ class WagnerWhitinGUI:
 
         axis = figure.add_subplot(111)
 
-        # NODE STRUCTURE
+        # Node structure
         node_count = n + 1
-
-        x_positions = list(
-            range(1, node_count + 1)
-        )
-
+        x_positions = list(range(1, node_count + 1))
         y_position = 0
 
-        # draw node
+        # Draw nodes
         axis.scatter(
             x_positions,
             [y_position] * node_count,
@@ -1188,9 +1184,8 @@ class WagnerWhitinGUI:
             zorder=5
         )
 
-        # node label
+        # Node labels
         for i in range(1, n + 1):
-
             axis.text(
                 i,
                 y_position,
@@ -1203,7 +1198,7 @@ class WagnerWhitinGUI:
                 zorder=6
             )
 
-        # end node
+        # End node
         axis.text(
             n + 1,
             y_position,
@@ -1216,9 +1211,8 @@ class WagnerWhitinGUI:
             zorder=6
         )
 
-        # DEMAND LABELS
+        # Demand labels
         for i in range(1, n + 1):
-
             axis.text(
                 i,
                 -0.8,
@@ -1228,223 +1222,132 @@ class WagnerWhitinGUI:
                 fontsize=9
             )
 
-        # DRAW ALL POSSIBLE DIRECTED ARCS
+        # Draw all possible directed arcs (gray)
         for start in range(1, n + 1):
-
             for end in range(start + 1, n + 2):
-
                 distance = end - start
-
-                # Keep the arcs separated
-                arc_height = (
-                    0.20 + distance * 0.08
-                )
-
+                arc_height = 0.20 + distance * 0.08
                 axis.annotate(
                     "",
                     xy=(end, 0),
                     xytext=(start, 0),
-
                     arrowprops=dict(
                         arrowstyle="->",
                         linewidth=1,
                         alpha=0.15,
                         color="gray",
-
-                        connectionstyle=(
-                            f"arc3,rad=-{arc_height}"
-                        )
+                        connectionstyle=f"arc3,rad=-{arc_height}"
                     ),
-
                     zorder=1
                 )
 
-        # DRAW ALL OPTIMAL PATHS
+        # Draw all optimal paths
         path_count = len(optimal_paths)
 
-        # Height used to separate multiple paths
+        # Height spacing used to separate multiple paths
         path_spacing = 0.10
 
-        for path_index, path in enumerate(
-            optimal_paths,
-            start=1
-        ):
+        for path_index, path in enumerate(optimal_paths, start=1):
 
-            # Calculate path-specific vertical position
+            # Calculate path‑specific vertical offset
             if path_count == 1:
-
                 path_offset = 0
-
             else:
-
-                path_offset = (
-                    (path_index - 1)
-                    - (path_count - 1) / 2
-                ) * path_spacing
+                path_offset = ((path_index - 1) - (path_count - 1) / 2) * path_spacing
 
             path_height_offset = path_offset
 
             # Draw every arc belonging to this optimal path
             for start_year, end_year in path:
 
-                # Convert WWA period representation into network node representation.
+                # Convert WWA period representation into network node representation
                 network_start = start_year
                 network_end = end_year + 1
-
-                distance = (
-                    network_end - network_start
-                )
+                distance = network_end - network_start
 
                 # Base arc height
-                base_height = (
-                    0.25 + distance * 0.10
-                )
+                base_height = 0.25 + distance * 0.10
 
                 # Add path separation
-                arc_height = (
-                    base_height
-                    + path_height_offset
-                )
+                arc_height = base_height + path_height_offset
 
                 # Draw optimal arc
                 axis.annotate(
                     "",
-                    xy=(
-                        network_end,
-                        0
-                    ),
-
-                    xytext=(
-                        network_start,
-                        0
-                    ),
-
+                    xy=(network_end, 0),
+                    xytext=(network_start, 0),
                     arrowprops=dict(
                         arrowstyle="->",
                         linewidth=3,
                         alpha=0.90,
-
-                        # default color cycle
                         color=f"C{(path_index - 1) % 10}",
-
-                        connectionstyle=(
-                            f"arc3,rad=-{arc_height}"
-                        )
+                        connectionstyle=f"arc3,rad=-{arc_height}"
                     ),
-
                     zorder=4
                 )
 
-                # LABEL POSITION
+                # Label position
+                middle = (network_start + network_end) / 2
+                label_offset = (path_index % 2) * 0.12
+                label_height = arc_height + 0.15 + label_offset
 
-                middle = (
-                    network_start
-                    + network_end
-                ) / 2
+                # Order quantity
+                order_quantity = sum(demands[start_year - 1:end_year])
 
-                label_height = (
-                    arc_height + 0.15
-                )
-
-                # ORDER QUANTITY
-                order_quantity = sum(
-                    demands[
-                        start_year - 1:end_year
-                    ]
-                )
-
-                # COVERAGE DESCRIPTION
-
+                # Coverage description
                 if start_year == end_year:
-
                     coverage_text = (
-                        f"P{path_index}: "
-                        f"Order = {order_quantity:.2f}\n"
+                        f"P{path_index}: Order = {order_quantity:.2f}\n"
                         f"Covers Y{start_year}"
                     )
-
                 else:
-
                     coverage_text = (
-                        f"P{path_index}: "
-                        f"Order = {order_quantity:.2f}\n"
-                        f"Covers Y{start_year}"
-                        f"-Y{end_year}"
+                        f"P{path_index}: Order = {order_quantity:.2f}\n"
+                        f"Covers Y{start_year}-Y{end_year}"
                     )
 
-                # DRAW LABEL
+                # Draw label
                 axis.text(
                     middle,
                     label_height,
                     coverage_text,
-
                     ha="center",
                     va="bottom",
-
                     fontsize=8,
                     fontweight="bold",
-
                     color=f"C{(path_index - 1) % 10}",
-
                     zorder=7,
-
                     bbox=dict(
                         boxstyle="round,pad=0.25",
                         facecolor="white",
                         alpha=0.75
                     )
                 )
-        #Axis title
+
+        # Axis title
         axis.set_title(
             "Directed Network Flow Diagram\n",
-
             fontsize=16,
             fontweight="bold",
             pad=25
         )
 
-        # axis lable
-        axis.set_xlabel(
-            "Planning Period",
-            fontsize=11
-        )
+        # Axis label
+        axis.set_xlabel("Planning Period", fontsize=11)
 
-        # X-AXIS
-        axis.set_xlim(
-            0.5,
-            n + 1.5
-        )
+        # X‑axis settings
+        axis.set_xlim(0.5, n + 1.5)
+        axis.set_xticks(x_positions)
 
-        axis.set_xticks(
-            x_positions
-        )
-
-        # Y-AXIS
-        # Increase the Y range because multiple paths
-
-        max_path_height = (
-            0.25
-            + n * 0.10
-            + abs(path_spacing * path_count)
-            + 1.0
-        )
-
-        axis.set_ylim(
-            -1.6,
-            max_path_height
-        )
-
+        # Y‑axis settings – increase range to accommodate multiple paths
+        max_path_height = 0.25 + n * 0.10 + abs(path_spacing * path_count) + 1.0
+        axis.set_ylim(-2.0, max_path_height)
         axis.set_yticks([])
 
-        # GRID
+        # Grid
+        axis.grid(axis="x", linestyle="--", alpha=0.25)
 
-        axis.grid(
-            axis="x",
-            linestyle="--",
-            alpha=0.25
-        )
-
-        # LEGEND / INFORMATION BOX
+        # Legend / information box
         legend_text = (
             "NETWORK FLOW INFORMATION\n"
             "--------------------------------\n"
@@ -1457,15 +1360,10 @@ class WagnerWhitinGUI:
         axis.text(
             0.02,
             0.97,
-
             legend_text,
-
             transform=axis.transAxes,
-
             fontsize=9,
-
             verticalalignment="top",
-
             bbox=dict(
                 boxstyle="round",
                 facecolor="white",
@@ -1473,58 +1371,28 @@ class WagnerWhitinGUI:
             )
         )
 
-        # result summary
-        summary_text = (
-            "OPTIMAL PATHS\n"
-            "==============================\n"
-        )
-
-        for path_number, path in enumerate(
-            optimal_paths,
-            start=1
-        ):
-
+        # Result summary
+        summary_text = "OPTIMAL PATHS\n==============================\n"
+        for path_number, path in enumerate(optimal_paths, start=1):
             path_text = " → ".join(
-
-                f"Y{start}"
-                if start == end
-
-                else f"Y{start}-Y{end}"
-
+                f"Y{start}" if start == end else f"Y{start}-Y{end}"
                 for start, end in path
             )
-
-            # Add END to the network path
+            # Append END to the network path
             if path:
+                path_text += " → END"
+            summary_text += f"Path {path_number}: {path_text}\n"
 
-                last_end = path[-1][1]
+        summary_text += f"\nSame Minimum Cost: RM {total_cost:,.2f}"
 
-                path_text += f" → END"
-
-            summary_text += (
-                f"Path {path_number}: "
-                f"{path_text}\n"
-            )
-
-        summary_text += (
-            "\n"
-            f"Same Minimum Cost: "
-            f"RM {total_cost:,.2f}"
-        )
-
-        # Put summary at bottom-left
+        # Put summary at bottom‑left
         axis.text(
             0.02,
             0.02,
-
             summary_text,
-
             transform=axis.transAxes,
-
             fontsize=9,
-
             verticalalignment="bottom",
-
             bbox=dict(
                 boxstyle="round",
                 facecolor="white",
@@ -1532,21 +1400,16 @@ class WagnerWhitinGUI:
             )
         )
 
-        # REMOVE TOP / RIGHT SPINES
+        # Remove top / right spines
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
 
-        # ADJUST LAYOUT
+        # Adjust layout
         figure.tight_layout()
 
-        # DISPLAY MATPLOTLIB IN TKINTER
-        canvas = FigureCanvasTkAgg(
-            figure,
-            master=flow_window
-        )
-
+        # Display matplotlib in Tkinter
+        canvas = FigureCanvasTkAgg(figure, master=flow_window)
         canvas.draw()
-
         canvas.get_tk_widget().pack(
             fill="both",
             expand=True,
