@@ -373,7 +373,7 @@ class FileManager:
 
                     file.write(
                         f"Year {i + 1:<3}: "
-                        f"{results['demands'][i]:.2f}\n"
+                        f"{results['demands'][i]:.0f}\n"
                     )
 
                 # SELECTED OPTIMAL ORDERING PLAN
@@ -404,8 +404,8 @@ class FileManager:
 
                     file.write(
                         f"{i + 1:<10}"
-                        f"{results['demands'][i]:<15.2f}"
-                        f"{qty:<15.2f}"
+                        f"{results['demands'][i]:<15.0f}"
+                        f"{qty:<15.0f}"
                         f"{str(end):<15}\n"
                     )
 
@@ -1216,7 +1216,7 @@ class WagnerWhitinGUI:
             axis.text(
                 i,
                 -2.4,
-                f"Demand = {demands[i - 1]:.2f}",
+                f"Demand = {demands[i - 1]:.0f}",
                 ha="center",
                 va="top",
                 fontsize=9
