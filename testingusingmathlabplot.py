@@ -1338,7 +1338,7 @@ class WagnerWhitinGUI:
         box_x = 0.02
         box_y = 0.05  # Moved very close to the X-axis
         box_w = 0.30
-        box_h = 0.40  # Increased height to fit the last line
+        box_h = 0.32  # Increased height to fit the last line
         
         # Draw a white rectangle background
         import matplotlib.patches as patches
