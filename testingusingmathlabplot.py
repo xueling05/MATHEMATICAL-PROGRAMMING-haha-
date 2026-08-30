@@ -71,8 +71,8 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
     # Forward Backtracking
 
-    order_schedule = [0.0] * n
-    order_end_year = [0] * n
+    produce_schedule = [0.0] * n
+    produce_end_year = [0] * n
 
     if optimal_paths:
 
@@ -84,8 +84,8 @@ def wagner_whitin_backward(n, demands, s, h, v):
                 demands[start_year - 1:end_year]
             )
 
-            order_schedule[start_year - 1] = qty
-            order_end_year[start_year - 1] = end_year
+            produce_schedule[start_year - 1] = qty
+            produce_end_year[start_year - 1] = end_year
 
     # Cost Breakdown
 
@@ -95,11 +95,11 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
     for i in range(n):
 
-        if order_schedule[i] > 0:
+        if produce_schedule[i] > 0:
             total_setup_cost += s
-            total_variable_cost += (order_schedule[i] * v)
+            total_variable_cost += (produce_schedule[i] * v)
 
-            end_year = order_end_year[i]
+            end_year = produce_end_year[i]
 
             for m in range(i + 1, end_year):
 
@@ -117,8 +117,8 @@ def wagner_whitin_backward(n, demands, s, h, v):
         "variable_cost": v,
 
         #first optimal solution
-        "order_schedule": order_schedule,
-        "order_end_year": order_end_year,
+        "produce_schedule": produce_schedule,
+        "produce_end_year": produce_end_year,
         "total_setup_cost": total_setup_cost,
         "total_holding_cost": total_holding_cost,
         "total_variable_cost": total_variable_cost,
@@ -251,30 +251,30 @@ class FileManager:
 
                 writer.writerow([])
 
-                # FIRST OPTIMAL ORDERING PLAN
-                writer.writerow(["SELECTED OPTIMAL ORDERING PLAN"])
-                writer.writerow(["Year", "Demand", "Order Quantity", "Covers Until"])
+                # FIRST OPTIMAL PRODUCING PLAN
+                writer.writerow(["SELECTED OPTIMAL PRODUCING PLAN"])
+                writer.writerow(["Year", "Demand", "Produce Quantity", "Covers Until"])
 
                 for i in range(results["n"]):
 
-                    if results["order_schedule"][i] > 0:
+                    if results["produce_schedule"][i] > 0:
 
-                        order_quantity = (results["order_schedule"][i])
+                        produce_quantity = (results["produce_schedule"][i])
 
-                        covers_until = (results["order_end_year"][i])
+                        covers_until = (results["produce_end_year"][i])
 
                     else:
 
-                        order_quantity = 0
+                        produce_quantity = 0
                         covers_until = "-"
 
-                    writer.writerow([i + 1, results["demands"][i], order_quantity, covers_until])
+                    writer.writerow([i + 1, results["demands"][i], produce_quantity, covers_until])
 
                 writer.writerow([])
 
                 # ALL OPTIMAL SOLUTIONS
                 writer.writerow(["ALL OPTIMAL SOLUTIONS"])
-                writer.writerow(["Solution", "Ordering Path", "Total Optimal Cost"])
+                writer.writerow(["Solution", "Producing Path", "Total Optimal Cost"])
 
                 optimal_paths = results["optimal_paths"]
 
@@ -376,14 +376,14 @@ class FileManager:
                         f"{results['demands'][i]:.0f}\n"
                     )
 
-                # SELECTED OPTIMAL ORDERING PLAN
-                file.write("\nSELECTED OPTIMAL ORDERING PLAN\n")
+                # SELECTED OPTIMAL PRODUCING PLAN
+                file.write("\nSELECTED OPTIMAL PRODUCING PLAN\n")
                 file.write("-" * 70 + "\n")
 
                 file.write(
                     f"{'Year':<10}"
                     f"{'Demand':<15}"
-                    f"{'Order Qty':<15}"
+                    f"{'Produce Qty':<15}"
                     f"{'Covers Until':<15}\n"
                 )
 
@@ -391,11 +391,11 @@ class FileManager:
 
                 for i in range(results["n"]):
 
-                    if results["order_schedule"][i] > 0:
+                    if results["produce_schedule"][i] > 0:
 
-                        qty = (results["order_schedule"][i])
+                        qty = (results["produce_schedule"][i])
 
-                        end = (results["order_end_year"][i])
+                        end = (results["produce_end_year"][i])
 
                     else:
 
@@ -430,7 +430,7 @@ class FileManager:
 
                     file.write(f"OPTIMAL SOLUTION {path_number}\n")
                     file.write("-" * 50 + "\n")
-                    file.write("Ordering Path: ")
+                    file.write("Producing Path: ")
 
                     path_text = " → ".join(
                         f"Year {start}"
@@ -639,7 +639,7 @@ class WagnerWhitinGUI:
         # RESULT TABLE
         result_frame = ttk.LabelFrame(
             self.root,
-            text="Optimal Ordering Plan",
+            text="Optimal Producing Plan",
             padding=10)
 
         result_frame.pack(
@@ -652,7 +652,7 @@ class WagnerWhitinGUI:
             "Solution",
             "Year",
             "Demand",
-            "Order Quantity",
+            "Produce Quantity",
             "Covers Until"
         )
 
@@ -825,27 +825,27 @@ class WagnerWhitinGUI:
         ):
 
             # --------------------------------------------------------
-            # Calculate order quantity for every year
+            # Calculate produce quantity for every year
             # --------------------------------------------------------
 
-            order_quantities = [0.0] * len(demands)
+            produce_quantities = [0.0] * len(demands)
 
-            order_end_years = [0] * len(demands)
+            produce_end_years = [0] * len(demands)
 
             for start_year, end_year in path:
 
-                # Calculate quantity covered by this order
+                # Calculate quantity covered by this produce
                 qty = sum(
                     demands[
                         start_year - 1:end_year
                     ]
                 )
 
-                order_quantities[
+                produce_quantities[
                     start_year - 1
                 ] = qty
 
-                order_end_years[
+                produce_end_years[
                     start_year - 1
                 ] = end_year
 
@@ -858,33 +858,33 @@ class WagnerWhitinGUI:
                 len(demands) + 1
             ):
 
-                order_qty = order_quantities[
+                produce_qty = produce_quantities[
                     year - 1
                 ]
 
                 # ----------------------------------------------------
-                # If order is placed in this year
+                # If produce is placed in this year
                 # ----------------------------------------------------
 
-                if order_qty > 0:
+                if produce_qty > 0:
 
-                    order_text = (
-                        f"{order_qty:.0f}"
+                    produce_text = (
+                        f"{produce_qty:.0f}"
                     )
 
                     covers_until = (
-                        order_end_years[
+                        produce_end_years[
                             year - 1
                         ]
                     )
 
                 # ----------------------------------------------------
-                # No order in this year
+                # No produce in this year
                 # ----------------------------------------------------
 
                 else:
 
-                    order_text = "-"
+                    produce_text = "-"
 
                     covers_until = "-"
 
@@ -899,7 +899,7 @@ class WagnerWhitinGUI:
                         f"Path {path_number}",
                         year,
                         f"{demands[year - 1]:.0f}",
-                        order_text,
+                        produce_text,
                         covers_until
                     )
                 )
@@ -1181,7 +1181,7 @@ class WagnerWhitinGUI:
             x_positions,
             [y_position] * node_count,
             s=1000,
-            zorder=5
+         zorder=5
         )
 
         # Node labels
@@ -1195,7 +1195,7 @@ class WagnerWhitinGUI:
                 fontsize=10,
                 fontweight="bold",
                 color="white",
-                zorder=6
+             zorder=6
             )
 
         # End node
@@ -1208,7 +1208,7 @@ class WagnerWhitinGUI:
             fontsize=10,
             fontweight="bold",
             color="white",
-            zorder=6
+         zorder=6
         )
 
         # Demand labels
@@ -1238,7 +1238,7 @@ class WagnerWhitinGUI:
                         color="gray",
                         connectionstyle=f"arc3,rad=-{arc_height}"
                     ),
-                    zorder=1
+                 zorder=1
                 )
 
         # Draw all optimal paths
@@ -1283,7 +1283,7 @@ class WagnerWhitinGUI:
                         color=f"C{(path_index - 1) % 10}",
                         connectionstyle=f"arc3,rad=-{arc_height}"
                     ),
-                    zorder=4
+                 zorder=4
                 )
 
         # Axis title
@@ -1313,7 +1313,7 @@ class WagnerWhitinGUI:
         legend_text = (
             "NETWORK FLOW INFORMATION\n"
             "--------------------------------\n"
-            "Gray arrows = Possible ordering decisions\n"
+            "Gray arrows = Possible producing decisions\n"
             "Colored arrows = Optimal WWA paths\n\n"
             f"Number of Optimal Paths = {path_count}\n"
             f"Minimum Total Cost = RM {total_cost:,.2f}"
@@ -1441,7 +1441,7 @@ class WagnerWhitinGUI:
 
         ttk.Label(
             path_window,
-            text="The following ordering plans have the same minimum total cost.\n",
+            text="The following producing plans have the same minimum total cost.\n",
             font=("Arial", 10)
         ).pack(pady=(0, 10))
 
@@ -1471,8 +1471,8 @@ class WagnerWhitinGUI:
                 "-" * 40 + "\n"
             )
 
-            # Create order quantity for every year
-            order_quantities = [0.0] * len(demands)
+            # Create produce quantity for every year
+            produce_quantities = [0.0] * len(demands)
 
             for start_year, end_year in path:
 
@@ -1480,16 +1480,16 @@ class WagnerWhitinGUI:
                     demands[start_year - 1:end_year]
                 )
 
-                order_quantities[start_year - 1] = qty
+                produce_quantities[start_year - 1] = qty
 
             # Display every year
             for year in range(1, len(demands) + 1):
 
-                if order_quantities[year - 1] > 0:
+                if produce_quantities[year - 1] > 0:
                     text.insert(
                         tk.END,
                         f"Year {year:<3}: "
-                        f"{order_quantities[year - 1]:.2f}\n"
+                        f"{produce_quantities[year - 1]:.2f}\n"
                     )
                 else:
                     text.insert(
