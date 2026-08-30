@@ -1109,7 +1109,7 @@ class WagnerWhitinGUI:
             demands):
 
             axis.annotate(
-                f"{demand:.2f}",
+                f"{demand:.0f}",
                 (year, demand),
                 textcoords="offset points",
                 xytext=(0, 8),
