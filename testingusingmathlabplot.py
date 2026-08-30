@@ -1047,7 +1047,7 @@ class WagnerWhitinGUI:
                 "Export Error",
                 str(error))
 
-    #demand trend line graph
+    # demand trend line graph
     def show_demand_trend(self):
 
         # Check whether calculation has been performed
@@ -1069,7 +1069,7 @@ class WagnerWhitinGUI:
 
         demands = self.results["demands"]
 
-        # Create matplotlib figure
+        #  Create matplotlib figure
         figure = Figure(
             figsize=(8, 5),
             dpi=100)
@@ -1103,7 +1103,7 @@ class WagnerWhitinGUI:
             linestyle="--",
             alpha=0.5)
 
-        # Display demand value above every point
+        # Display value for every points
         for year, demand in zip(
             years,
             demands):
@@ -1132,8 +1132,6 @@ class WagnerWhitinGUI:
             pady=10)
 
     # DIRECTED NETWORK FLOW DIAGRAM
-
-        # DIRECTED NETWORK FLOW DIAGRAM - MULTIPLE OPTIMAL PATHS
     def show_network_flow(self):
 
         # Check whether calculation has been performed
@@ -1144,20 +1142,15 @@ class WagnerWhitinGUI:
             )
             return
 
-        # ============================================================
         # GET WWA RESULTS
-        # ============================================================
-
         n = self.results["n"]
         demands = self.results["demands"]
 
-        # IMPORTANT:
-        # Use ALL optimal paths instead of only the first solution
+        # all solution
         optimal_paths = self.results["optimal_paths"]
-
         total_cost = self.results["total_cost"]
 
-        # Check whether optimal paths exist
+        # Check whether optimal paths
         if not optimal_paths:
             messagebox.showwarning(
                 "No Optimal Path",
@@ -1165,18 +1158,12 @@ class WagnerWhitinGUI:
             )
             return
 
-        # ============================================================
-        # CREATE WINDOW
-        # ============================================================
-
+        # create window
         flow_window = tk.Toplevel(self.root)
         flow_window.title("Multiple Optimal Network Flow Paths")
         flow_window.geometry("1400x850")
 
-        # ============================================================
-        # CREATE MATPLOTLIB FIGURE
-        # ============================================================
-
+        # cretae figure
         figure = Figure(
             figsize=(14, 8),
             dpi=100
@@ -1184,20 +1171,7 @@ class WagnerWhitinGUI:
 
         axis = figure.add_subplot(111)
 
-        # ============================================================
         # NODE STRUCTURE
-        #
-        # Node i represents the beginning of period i.
-        #
-        # Y1 -> Y2 means:
-        # Order in Year 1 covers demand of Year 1.
-        #
-        # Y1 -> Y4 means:
-        # Order in Year 1 covers Year 1, Year 2 and Year 3.
-        #
-        # END = n + 1
-        # ============================================================
-
         node_count = n + 1
 
         x_positions = list(
@@ -1206,10 +1180,7 @@ class WagnerWhitinGUI:
 
         y_position = 0
 
-        # ============================================================
-        # DRAW ALL NODES
-        # ============================================================
-
+        # draw node
         axis.scatter(
             x_positions,
             [y_position] * node_count,
@@ -1217,10 +1188,7 @@ class WagnerWhitinGUI:
             zorder=5
         )
 
-        # ============================================================
-        # NODE LABELS
-        # ============================================================
-
+        # node label
         for i in range(1, n + 1):
 
             axis.text(
@@ -1235,8 +1203,7 @@ class WagnerWhitinGUI:
                 zorder=6
             )
 
-        # END NODE
-
+        # end node
         axis.text(
             n + 1,
             y_position,
@@ -1249,10 +1216,7 @@ class WagnerWhitinGUI:
             zorder=6
         )
 
-        # ============================================================
         # DEMAND LABELS
-        # ============================================================
-
         for i in range(1, n + 1):
 
             axis.text(
@@ -1264,13 +1228,7 @@ class WagnerWhitinGUI:
                 fontsize=9
             )
 
-        # ============================================================
         # DRAW ALL POSSIBLE DIRECTED ARCS
-        #
-        # These are all possible ordering decisions.
-        # They are shown in light gray.
-        # ============================================================
-
         for start in range(1, n + 1):
 
             for end in range(start + 1, n + 2):
@@ -1301,25 +1259,7 @@ class WagnerWhitinGUI:
                     zorder=1
                 )
 
-        # ============================================================
         # DRAW ALL OPTIMAL PATHS
-        #
-        # Each optimal path is drawn separately.
-        #
-        # Example:
-        #
-        # Path 1:
-        # Y1 -> Y3 -> Y5 -> END
-        #
-        # Path 2:
-        # Y1 -> Y2 -> Y5 -> END
-        #
-        # Both paths have the same optimal cost.
-        # ============================================================
-
-        # Different line heights allow overlapping paths
-        # to be seen more clearly.
-
         path_count = len(optimal_paths)
 
         # Height used to separate multiple paths
@@ -1330,10 +1270,7 @@ class WagnerWhitinGUI:
             start=1
         ):
 
-            # --------------------------------------------------------
             # Calculate path-specific vertical position
-            # --------------------------------------------------------
-
             if path_count == 1:
 
                 path_offset = 0
@@ -1345,31 +1282,12 @@ class WagnerWhitinGUI:
                     - (path_count - 1) / 2
                 ) * path_spacing
 
-            # Make sure first path is slightly higher
-            # so that the paths are easier to distinguish.
-
             path_height_offset = path_offset
 
-            # --------------------------------------------------------
             # Draw every arc belonging to this optimal path
-            # --------------------------------------------------------
-
             for start_year, end_year in path:
 
-                # Convert WWA period representation into
-                # network node representation.
-                #
-                # Example:
-                #
-                # WWA:
-                # (1, 3)
-                #
-                # means:
-                # Order at Year 1 covers Year 1-3.
-                #
-                # Network:
-                # Y1 -> Y4
-                #
+                # Convert WWA period representation into network node representation.
                 network_start = start_year
                 network_end = end_year + 1
 
@@ -1388,10 +1306,7 @@ class WagnerWhitinGUI:
                     + path_height_offset
                 )
 
-                # ----------------------------------------------------
                 # Draw optimal arc
-                # ----------------------------------------------------
-
                 axis.annotate(
                     "",
                     xy=(
@@ -1409,7 +1324,6 @@ class WagnerWhitinGUI:
                         linewidth=3,
                         alpha=0.90,
 
-                        # Automatically select matplotlib
                         # default color cycle
                         color=f"C{(path_index - 1) % 10}",
 
@@ -1421,9 +1335,7 @@ class WagnerWhitinGUI:
                     zorder=4
                 )
 
-                # ----------------------------------------------------
                 # LABEL POSITION
-                # ----------------------------------------------------
 
                 middle = (
                     network_start
@@ -1434,19 +1346,14 @@ class WagnerWhitinGUI:
                     arc_height + 0.15
                 )
 
-                # ----------------------------------------------------
                 # ORDER QUANTITY
-                # ----------------------------------------------------
-
                 order_quantity = sum(
                     demands[
                         start_year - 1:end_year
                     ]
                 )
 
-                # ----------------------------------------------------
                 # COVERAGE DESCRIPTION
-                # ----------------------------------------------------
 
                 if start_year == end_year:
 
@@ -1465,10 +1372,7 @@ class WagnerWhitinGUI:
                         f"-Y{end_year}"
                     )
 
-                # ----------------------------------------------------
                 # DRAW LABEL
-                # ----------------------------------------------------
-
                 axis.text(
                     middle,
                     label_height,
@@ -1490,11 +1394,7 @@ class WagnerWhitinGUI:
                         alpha=0.75
                     )
                 )
-
-        # ============================================================
-        # TITLE
-        # ============================================================
-
+        #Axis title
         axis.set_title(
             "Directed Network Flow Diagram\n",
 
@@ -1503,19 +1403,13 @@ class WagnerWhitinGUI:
             pad=25
         )
 
-        # ============================================================
-        # AXIS LABEL
-        # ============================================================
-
+        # axis lable
         axis.set_xlabel(
             "Planning Period",
             fontsize=11
         )
 
-        # ============================================================
         # X-AXIS
-        # ============================================================
-
         axis.set_xlim(
             0.5,
             n + 1.5
@@ -1525,12 +1419,8 @@ class WagnerWhitinGUI:
             x_positions
         )
 
-        # ============================================================
         # Y-AXIS
-        # ============================================================
-
         # Increase the Y range because multiple paths
-        # may create labels at different heights.
 
         max_path_height = (
             0.25
@@ -1546,9 +1436,7 @@ class WagnerWhitinGUI:
 
         axis.set_yticks([])
 
-        # ============================================================
         # GRID
-        # ============================================================
 
         axis.grid(
             axis="x",
@@ -1556,10 +1444,7 @@ class WagnerWhitinGUI:
             alpha=0.25
         )
 
-        # ============================================================
         # LEGEND / INFORMATION BOX
-        # ============================================================
-
         legend_text = (
             "NETWORK FLOW INFORMATION\n"
             "--------------------------------\n"
@@ -1588,10 +1473,7 @@ class WagnerWhitinGUI:
             )
         )
 
-        # ============================================================
-        # OPTIMAL PATH SUMMARY
-        # ============================================================
-
+        # result summary
         summary_text = (
             "OPTIMAL PATHS\n"
             "==============================\n"
@@ -1650,23 +1532,14 @@ class WagnerWhitinGUI:
             )
         )
 
-        # ============================================================
         # REMOVE TOP / RIGHT SPINES
-        # ============================================================
-
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
 
-        # ============================================================
         # ADJUST LAYOUT
-        # ============================================================
-
         figure.tight_layout()
 
-        # ============================================================
         # DISPLAY MATPLOTLIB IN TKINTER
-        # ============================================================
-
         canvas = FigureCanvasTkAgg(
             figure,
             master=flow_window
