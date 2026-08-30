@@ -1359,7 +1359,7 @@ class WagnerWhitinGUI:
 
         # Loop to draw colored lines and text for each path
         line_spacing = 0.045 # Adjusted spacing
-        start_y = box_y + box_h - 0.12 # Starting position for the first line
+        start_y = box_y + box_h - 0.06 # Starting position for the first line
 
         for i, path in enumerate(optimal_paths, start=1):
             current_y = start_y - i * line_spacing
