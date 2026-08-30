@@ -1057,7 +1057,7 @@ class WagnerWhitinGUI:
                 "Please calculate the WWA solution first.")
             return
 
-        #Create new window
+        # Create new window
         graph_window = tk.Toplevel(self.root)
         graph_window.title("Demand Trend")
         graph_window.geometry("850x600")
@@ -1069,7 +1069,7 @@ class WagnerWhitinGUI:
 
         demands = self.results["demands"]
 
-        #  Create matplotlib figure
+        # Create matplotlib figure
         figure = Figure(
             figsize=(8, 5),
             dpi=100)
@@ -1130,11 +1130,11 @@ class WagnerWhitinGUI:
             expand=True,
             padx=10,
             pady=10)
-
-    # DIRECTED NETWORK FLOW DIAGRAM
+        
+            # DIRECTED NETWORK FLOW DIAGRAM
     def show_network_flow(self):
 
-    # Check whether calculation has been performed
+        # Check whether calculation has been performed
         if self.results is None:
             messagebox.showwarning(
                 "No Results",
@@ -1215,7 +1215,7 @@ class WagnerWhitinGUI:
         for i in range(1, n + 1):
             axis.text(
                 i,
-                -0.8,
+                -2.4,
                 f"Demand = {demands[i - 1]:.2f}",
                 ha="center",
                 va="top",
@@ -1249,7 +1249,7 @@ class WagnerWhitinGUI:
 
         for path_index, path in enumerate(optimal_paths, start=1):
 
-            # Calculate path‑specific vertical offset
+            # Calculate path-specific vertical offset
             if path_count == 1:
                 path_offset = 0
             else:
@@ -1286,44 +1286,6 @@ class WagnerWhitinGUI:
                     zorder=4
                 )
 
-                # Label position
-                middle = (network_start + network_end) / 2
-                label_offset = (path_index % 2) * 0.12
-                label_height = arc_height + 0.15 + label_offset
-
-                # Order quantity
-                order_quantity = sum(demands[start_year - 1:end_year])
-
-                # Coverage description
-                if start_year == end_year:
-                    coverage_text = (
-                        f"P{path_index}: Order = {order_quantity:.2f}\n"
-                        f"Covers Y{start_year}"
-                    )
-                else:
-                    coverage_text = (
-                        f"P{path_index}: Order = {order_quantity:.2f}\n"
-                        f"Covers Y{start_year}-Y{end_year}"
-                    )
-
-                # Draw label
-                axis.text(
-                    middle,
-                    label_height,
-                    coverage_text,
-                    ha="center",
-                    va="bottom",
-                    fontsize=8,
-                    fontweight="bold",
-                    color=f"C{(path_index - 1) % 10}",
-                    zorder=7,
-                    bbox=dict(
-                        boxstyle="round,pad=0.25",
-                        facecolor="white",
-                        alpha=0.75
-                    )
-                )
-
         # Axis title
         axis.set_title(
             "Directed Network Flow Diagram\n",
@@ -1335,13 +1297,13 @@ class WagnerWhitinGUI:
         # Axis label
         axis.set_xlabel("Planning Period", fontsize=11)
 
-        # X‑axis settings
+        # X-axis settings
         axis.set_xlim(0.5, n + 1.5)
         axis.set_xticks(x_positions)
 
-        # Y‑axis settings – increase range to accommodate multiple paths
+        # Y-axis settings – increase range to accommodate multiple paths
         max_path_height = 0.25 + n * 0.10 + abs(path_spacing * path_count) + 1.0
-        axis.set_ylim(-2.0, max_path_height)
+        axis.set_ylim(-2.5, max_path_height)
         axis.set_yticks([])
 
         # Grid
@@ -1371,33 +1333,70 @@ class WagnerWhitinGUI:
             )
         )
 
-        # Result summary
-        summary_text = "OPTIMAL PATHS\n==============================\n"
-        for path_number, path in enumerate(optimal_paths, start=1):
+                # Summary Box (Using Fixed Rectangle Background)
+        # Define the position and size of the summary box
+        box_x = 0.02
+        box_y = 0.05  # Moved very close to the X-axis
+        box_w = 0.30
+        box_h = 0.40  # Increased height to fit the last line
+        
+        # Draw a white rectangle background
+        import matplotlib.patches as patches
+        rect = patches.Rectangle(
+            (box_x, box_y), box_w, box_h,
+            linewidth=1, edgecolor="black", facecolor="white", alpha=0.9,
+            transform=axis.transAxes, zorder=5
+        )
+        axis.add_patch(rect)
+
+        # Write the title (top inside the box)
+        axis.text(
+            box_x + 0.02, box_y + box_h - 0.02,
+            "OPTIMAL PATHS\n==============================",
+            transform=axis.transAxes, fontsize=9, fontweight="bold",
+            verticalalignment="top", zorder=6
+        )
+
+        # Loop to draw colored lines and text for each path
+        line_spacing = 0.045 # Adjusted spacing
+        start_y = box_y + box_h - 0.12 # Starting position for the first line
+
+        for i, path in enumerate(optimal_paths, start=1):
+            current_y = start_y - i * line_spacing
+
+            # Get the color for the current path
+            color = f"C{(i - 1) % 10}"
+
+            # Draw the colored short line on the left
+            axis.plot(
+                [box_x + 0.02, box_x + 0.06],
+                [current_y, current_y],
+                color=color, linewidth=4, transform=axis.transAxes, zorder=6
+            )
+
+            # Construct the path text
             path_text = " → ".join(
                 f"Y{start}" if start == end else f"Y{start}-Y{end}"
                 for start, end in path
             )
-            # Append END to the network path
             if path:
                 path_text += " → END"
-            summary_text += f"Path {path_number}: {path_text}\n"
 
-        summary_text += f"\nSame Minimum Cost: RM {total_cost:,.2f}"
-
-        # Put summary at bottom‑left
-        axis.text(
-            0.02,
-            0.02,
-            summary_text,
-            transform=axis.transAxes,
-            fontsize=9,
-            verticalalignment="bottom",
-            bbox=dict(
-                boxstyle="round",
-                facecolor="white",
-                alpha=0.90
+            # Draw the path text (aligned to the left)
+            axis.text(
+                box_x + 0.08, current_y,
+                f"Path {i}: {path_text}",
+                transform=axis.transAxes, fontsize=9,
+                verticalalignment="center", zorder=6
             )
+
+        # Write the total cost at the bottom
+        cost_y = start_y - (len(optimal_paths) + 1.0) * line_spacing # Adjusted to keep it inside
+        axis.text(
+            box_x + 0.03, cost_y,
+            f"Same Minimum Cost: RM {total_cost:,.2f}",
+            transform=axis.transAxes, fontsize=9, fontweight="bold",
+            verticalalignment="center", zorder=6
         )
 
         # Remove top / right spines
