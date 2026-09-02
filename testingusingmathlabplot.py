@@ -1496,7 +1496,22 @@ class WagnerWhitinGUI:
         flow_window.minsize(900, 600)
         flow_window.configure(bg=self.bg_color)
         figure = Figure(figsize=(13, 7.5), dpi=100, facecolor=self.panel_color)
-        axis = figure.add_subplot(111)
+        layout = figure.add_gridspec(
+            2,
+            1,
+            height_ratios=[2.05, 3.95],
+            hspace=0.09,
+        )
+        info_axis = figure.add_subplot(layout[0])
+        axis = figure.add_subplot(layout[1])
+        info_axis.set_axis_off()
+        figure.suptitle(
+            "Optimal Production Network",
+            fontsize=17,
+            fontweight="bold",
+            color=self.text_color,
+            y=0.985,
+        )
         node_count = n + 1
         x_positions = list(range(1, node_count + 1))
         y_position = 0
@@ -1573,10 +1588,6 @@ class WagnerWhitinGUI:
                     ),
                     zorder=4,
                 )
-        axis.set_title(
-            "Optimal Production Network", fontsize=17, fontweight="bold",
-            color=self.text_color, pad=25
-        )
         axis.set_xlabel("Planning period", fontsize=10, color=self.colors["muted"])
         axis.set_xlim(0.5, n + 1.5)
         axis.set_xticks(x_positions)
@@ -1605,9 +1616,10 @@ class WagnerWhitinGUI:
             ),
         ]
 
-        arc_legend = axis.legend(
+        arc_legend = info_axis.legend(
             handles=network_legend,
             loc="upper right",
+            bbox_to_anchor=(0.98, 0.86),
             fontsize=9,
             frameon=True,
             facecolor="white",
@@ -1625,10 +1637,10 @@ class WagnerWhitinGUI:
         display_rows = len(displayed_paths) + (1 if hidden_path_count else 0)
 
         box_left = 0.02
-        box_top = 0.36
-        box_width = 0.36
-        line_spacing = 0.036
-        box_height = 0.11 + display_rows * line_spacing
+        box_top = 0.88
+        box_width = 0.43
+        line_spacing = 0.10
+        box_height = 0.26 + display_rows * line_spacing
         box_bottom = box_top - box_height
 
         path_box = FancyBboxPatch(
@@ -1636,20 +1648,20 @@ class WagnerWhitinGUI:
             box_width,
             box_height,
             boxstyle="round,pad=0.008",
-            transform=axis.transAxes,
+            transform=info_axis.transAxes,
             linewidth=1.2,
             edgecolor=self.border_color,
             facecolor="white",
             alpha=0.95,
             zorder=8,
         )
-        axis.add_patch(path_box)
+        info_axis.add_patch(path_box)
 
-        axis.text(
+        info_axis.text(
             box_left + 0.02,
-            box_top - 0.018,
+            box_top - 0.055,
             "OPTIMAL PATHS",
-            transform=axis.transAxes,
+            transform=info_axis.transAxes,
             fontsize=9,
             fontweight="bold",
             color=self.text_color,
@@ -1657,7 +1669,7 @@ class WagnerWhitinGUI:
             zorder=10,
         )
 
-        first_path_y = box_top - 0.060
+        first_path_y = box_top - 0.20
 
         for i, path in enumerate(displayed_paths, start=1):
             path_text = " → ".join(
@@ -1670,21 +1682,21 @@ class WagnerWhitinGUI:
             current_y = first_path_y - (i - 1) * line_spacing
             path_color = palette[(i - 1) % len(palette)]
 
-            axis.plot(
-                [box_left + 0.018, box_left + 0.058],
+            info_axis.plot(
+                [box_left + 0.02, box_left + 0.075],
                 [current_y, current_y],
-                transform=axis.transAxes,
+                transform=info_axis.transAxes,
                 color=path_color,
                 linewidth=3.2,
                 solid_capstyle="round",
                 zorder=10,
             )
 
-            axis.text(
-                box_left + 0.075,
+            info_axis.text(
+                box_left + 0.095,
                 current_y,
                 f"Path {i}: {path_text}",
-                transform=axis.transAxes,
+                transform=info_axis.transAxes,
                 fontsize=7.5,
                 color=self.text_color,
                 va="center",
@@ -1693,29 +1705,35 @@ class WagnerWhitinGUI:
 
         if hidden_path_count:
             more_y = first_path_y - len(displayed_paths) * line_spacing
-            axis.text(
-                box_left + 0.075,
+            info_axis.text(
+                box_left + 0.095,
                 more_y,
                 f"… and {hidden_path_count} more optimal path(s)",
-                transform=axis.transAxes,
+                transform=info_axis.transAxes,
                 fontsize=7.5,
                 color=self.colors["muted"],
                 va="center",
                 zorder=10,
             )
 
-        axis.text(
-            box_left + 0.018,
-            box_bottom + 0.018,
+        info_axis.text(
+            box_left + 0.02,
+            box_bottom + 0.05,
             f"Same Minimum Cost: RM {total_cost:,.2f}",
-            transform=axis.transAxes,
-            fontsize=8.2,
+            transform=info_axis.transAxes,
+            fontsize=8.5,
             fontweight="bold",
             color=self.text_color,
             va="bottom",
             zorder=10,
         )
-        figure.tight_layout()
+        figure.subplots_adjust(
+            left=0.05,
+            right=0.98,
+            bottom=0.10,
+            top=0.92,
+            hspace=0.06,
+        )
         canvas = FigureCanvasTkAgg(figure, master=flow_window)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=18, pady=18)
