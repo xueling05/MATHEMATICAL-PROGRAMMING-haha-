@@ -489,65 +489,158 @@ class WagnerWhitinGUI:
         self.root = root
         self.root.title("Wagner-Whitin Algorithm")
 
-        self.root.geometry("1150x750")
+        self.root.geometry("1350x900")
+        self.root.minsize(1000, 700)
+
+        # ---------------- Colour theme ----------------
+        # Main GUI colours (unchanged from the original code)
+        self.bg_color = "#D0E6FD"
+        self.panel_color = "#FFFFFF"
+        self.primary_color = "#162660"
+        self.primary_dark = "#6CC4F0"
+        self.success_color = "#27834E"
+        self.text_color = "#162660"
+        self.border_color = "#F1E4D1"
+
+        self.root.configure(bg=self.bg_color)
+
+        style = ttk.Style()
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        style.configure("Main.TFrame", background=self.bg_color)
+        style.configure("TLabel",
+                        font=("Arial", 13),
+                        foreground=self.text_color,
+                        background=self.bg_color)
+        style.configure("TButton",
+                        font=("Arial", 12, "bold"),
+                        foreground="white",
+                        background=self.primary_color,
+                        padding=(14, 9),
+                        borderwidth=0)
+        style.map("TButton",
+                  background=[("active", self.primary_dark),
+                              ("pressed", self.primary_dark)])
+
+        style.configure("TEntry",
+                        font=("Arial", 14),
+                        padding=6,
+                        fieldbackground="white",
+                        foreground=self.text_color)
+
+        style.configure("TLabelframe",
+                        background=self.panel_color,
+                        bordercolor=self.border_color,
+                        relief="solid")
+        style.configure("TLabelframe.Label",
+                        font=("Arial", 14, "bold"),
+                        foreground=self.primary_color,
+                        background=self.panel_color)
+
+        style.configure("Treeview",
+                        font=("Arial", 13),
+                        rowheight=34,
+                        background="white",
+                        fieldbackground="white",
+                        foreground=self.text_color)
+        style.configure("Treeview.Heading",
+                        font=("Arial", 13, "bold"),
+                        foreground="white",
+                        background=self.primary_color,
+                        padding=8)
+        style.map("Treeview",
+                  background=[("selected", "#D0E6FD")],
+                  foreground=[("selected", self.text_color)])
+        style.map("Treeview.Heading",
+                  background=[("active", self.primary_dark)])
 
         self.build_gui()
 
     # BUILD GUI
     def build_gui(self):
 
+        # Store demand input boxes and calculation result
         self.demand_entries = []
         self.results = None
 
-        # Store demand input boxes
-        self.demand_entries = []
+        # =========================
+        # GUI FONT AND STYLE SETTINGS
+        # =========================
+        style = ttk.Style()
 
-        # Store calculation result
-        self.results = None
+        style.configure(
+            "TLabel",
+            font=("Arial", 13)
+        )
 
-        # Build GUI
-        self.build_gui()
+        style.configure(
+            "TButton",
+            font=("Arial", 12, "bold"),
+            padding=(12, 8)
+        )
 
-    # BUILD GUI
+        style.configure(
+            "TEntry",
+            font=("Arial", 14),
+            padding=6
+        )
 
-    def build_gui(self):
+        style.configure(
+            "TLabelframe.Label",
+            font=("Arial", 16, "bold")
+        )
+
+        style.configure(
+            "Treeview",
+            font=("Arial", 13),
+            rowheight=34
+        )
+
+        style.configure(
+            "Treeview.Heading",
+            font=("Arial", 13, "bold"),
+            padding=8
+        )
 
         # Title
         title = ttk.Label(
             self.root,
             text="WAGNER-WHITIN ALGORITHM",
-            font=("Arial", 22, "bold"))
+            font=("Arial", 26, "bold"), foreground=self.primary_color)
 
         title.pack(pady=15)
 
         subtitle = ttk.Label(self.root,text=(
                 "Dynamic Lot Size Model "
                 "| Duration is measured in Years"),
-            font=("Arial", 11))
+            font=("Arial", 13))
 
         subtitle.pack(pady=(0, 10))
 
         # INPUT FRAME
 
-        input_frame = ttk.LabelFrame(self.root,text="Input Information",padding=15)
+        input_frame = ttk.LabelFrame(self.root, text="Input Information", padding=18)
 
-        input_frame.pack( fill="x",padx=20,pady=5)
+        input_frame.pack(fill="x", padx=25, pady=8)
 
         # Number of years
         ttk.Label(input_frame,text="Number of Years:").grid(
             row=0,
             column=0,
-            padx=10,
-            pady=7)
+            padx=12,
+            pady=9)
 
-        self.period_entry = ttk.Entry(input_frame, width=15)
+        self.period_entry = ttk.Entry(input_frame, width=17)
         self.period_entry.grid(row=0,column=1) 
 
         # Setup cost
         ttk.Label(input_frame,text="Setup Cost:").grid(
             row=0,
             column=2,
-            padx=10)
+            padx=12)
 
         self.setup_entry = ttk.Entry(input_frame,width=15)
 
@@ -583,70 +676,95 @@ class WagnerWhitinGUI:
             ipadx=10)
 
         # DEMAND FRAME
-        self.demand_frame = ttk.LabelFrame(self.root,text="Demand for Each Year",padding=15)
-        self.demand_frame.pack(fill="x", padx=20,pady=8)
+        self.demand_frame = ttk.LabelFrame(self.root, text="Demand for Each Year", padding=18)
+        self.demand_frame.pack(fill="x", padx=25, pady=10)
 
         # BUTTON FRAME
-        button_frame = ttk.Frame(self.root)
-        button_frame.pack(pady=10)
+        button_frame = ttk.Frame(self.root, style="Main.TFrame")
+        button_frame.pack(pady=12)
 
         # Calculate
         ttk.Button(button_frame,text="Calculate",command=self.calculate).grid(
             row=0,
             column=0,
-            padx=5)
+            padx=7)
 
         # Read Input
         ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
             row=0,
             column=1,
-            padx=5)
+            padx=7)
 
         # Export CSV
         ttk.Button(button_frame,text="Export CSV",command=self.export_csv).grid(
             row=0,
-            column=3,
-            padx=5)
+            column=2,
+            padx=7)
 
         # Export Report
         ttk.Button(button_frame,text="Export Report",command=self.export_report).grid(
             row=0,
-            column=4,
-            padx=5)
+            column=3,
+            padx=7)
 
         # Clear
         ttk.Button(button_frame,text="Clear",command=self.clear).grid(
-            row=0,
-            column=5,
-            padx=5)
+            row=1,
+            column=0,
+            pady=(8, 0),
+            padx=7)
 
         # Exit
         ttk.Button(button_frame,text="Exit",command=self.root.destroy).grid(
-            row=0,
-            column=6,
-            padx=5)
+            row=1,
+            column=1,
+            pady=(8, 0),
+            padx=7)
 
         ttk.Button(button_frame,text="Demand Trend Line Graph",command=self.show_demand_trend).grid(
-            row=0,
-            column=7,
-            padx=5)
+            row=1,
+            column=2,
+            pady=(8, 0),
+            padx=7)
 
         ttk.Button(button_frame,text="Network Flow Diagram",command=self.show_network_flow).grid(
-            row=0,
-            column=8,
-            padx=5)
+            row=1,
+            column=3,
+            pady=(8, 0),
+            padx=7)
+
+        # Reserve the footer before packing the expanding result table.  This
+        # keeps the cost and status wording visible on shorter screens.
+        footer_frame = ttk.Frame(self.root, style="Main.TFrame")
+        footer_frame.pack(side="bottom", fill="x")
+
+        self.cost_label = ttk.Label(
+            footer_frame,
+            text="Total Optimal Cost: RM 0.00",
+            font=("Arial", 20, "bold"),
+            foreground=self.success_color,
+            background=self.bg_color)
+        self.cost_label.pack(pady=(8, 10))
+
+        self.status = ttk.Label(
+            footer_frame,
+            text="Ready.",
+            font=("Arial", 12),
+            relief="sunken",
+            anchor="w")
+        self.status.pack(fill="x")
 
         # RESULT TABLE
         result_frame = ttk.LabelFrame(
             self.root,
             text="Optimal Producing Plan",
-            padding=10)
+            padding=12)
 
         result_frame.pack(
             fill="both",
             expand=True,
-            padx=20,
-            pady=5)
+            padx=25,
+            pady=7)
 
         columns = (
             "Solution",
@@ -672,35 +790,27 @@ class WagnerWhitinGUI:
             self.table.column(
                 column,
                 anchor="center",
-                width=150
+                width=175
             )
 
+        # Scrollbar for the result table
+        table_scrollbar = ttk.Scrollbar(
+            result_frame,
+            orient="vertical",
+            command=self.table.yview
+        )
+        self.table.configure(yscrollcommand=table_scrollbar.set)
+
         self.table.pack(
+            side="left",
             fill="both",
             expand=True
         )
 
-        # COST DISPLAY
-
-        self.cost_label = ttk.Label(
-            self.root,
-            text="Total Optimal Cost: RM 0.00",
-            font=("Arial", 16, "bold"))
-
-        self.cost_label.pack(pady=10)
-
-        # Status bar
-        self.status = ttk.Label(
-            self.root,
-            text="Ready.",
-            relief="sunken",
-            anchor="w")
-
-        self.status.pack(
-            side="bottom",
-            fill="x")
-
-        
+        table_scrollbar.pack(
+            side="right",
+            fill="y"
+        )
 
     # CREATE DEMAND INPUT BOXES
     def create_demands(self):
@@ -727,7 +837,7 @@ class WagnerWhitinGUI:
                 padx=8,
                 pady=5)
 
-            entry = ttk.Entry(self.demand_frame,width=12)
+            entry = ttk.Entry(self.demand_frame, width=14)
 
             entry.grid(
                 row=row,
@@ -1074,12 +1184,12 @@ class WagnerWhitinGUI:
         # Graph title
         axis.set_title(
             "Demand Trend Line Graph",
-            fontsize=14,
+            fontsize=18,
             fontweight="bold")
 
         # Axis labels
-        axis.set_xlabel("Year")
-        axis.set_ylabel("Number of Demand")
+        axis.set_xlabel("Year", fontsize=13)
+        axis.set_ylabel("Number of Demand", fontsize=13)
 
         # Show every year on x-axis
         axis.set_xticks(years)
@@ -1148,7 +1258,7 @@ class WagnerWhitinGUI:
         # Create window
         flow_window = tk.Toplevel(self.root)
         flow_window.title("Multiple Optimal Network Flow Paths")
-        flow_window.geometry("1400x850")
+        flow_window.geometry("1500x900")
 
         # Create figure
         figure = Figure(
@@ -1179,7 +1289,7 @@ class WagnerWhitinGUI:
                 f"Y{i}",
                 ha="center",
                 va="center",
-                fontsize=10,
+                fontsize=12,
                 fontweight="bold",
                 color="white",
              zorder=6
@@ -1192,7 +1302,7 @@ class WagnerWhitinGUI:
             "END",
             ha="center",
             va="center",
-            fontsize=10,
+            fontsize=12,
             fontweight="bold",
             color="white",
          zorder=6
@@ -1206,7 +1316,7 @@ class WagnerWhitinGUI:
                 f"Demand = {demands[i - 1]:.0f}",
                 ha="center",
                 va="top",
-                fontsize=9
+                fontsize=11
             )
 
         # Draw all possible directed arcs (gray)
@@ -1429,14 +1539,14 @@ class WagnerWhitinGUI:
         ttk.Label(
             path_window,
             text="The following producing plans have the same minimum total cost.\n",
-            font=("Arial", 10)
+            font=("Arial", 12)
         ).pack(pady=(0, 10))
 
         text = tk.Text(
             path_window,
             width=70,
             height=30,
-            font=("Courier New", 10)
+            font=("Courier New", 12)
             )
 
         text.pack(
