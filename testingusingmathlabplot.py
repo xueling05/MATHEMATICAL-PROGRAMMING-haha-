@@ -717,19 +717,19 @@ class WagnerWhitinGUI:
         # Exit
         ttk.Button(button_frame,text="Exit",command=self.root.destroy).grid(
             row=1,
-            column=1,
+            column=3,
             pady=(8, 0),
             padx=7)
 
         ttk.Button(button_frame,text="Demand Trend Line Graph",command=self.show_demand_trend).grid(
             row=1,
-            column=2,
+            column=1,
             pady=(8, 0),
             padx=7)
 
         ttk.Button(button_frame,text="Network Flow Diagram",command=self.show_network_flow).grid(
             row=1,
-            column=3,
+            column=2,
             pady=(8, 0),
             padx=7)
 
