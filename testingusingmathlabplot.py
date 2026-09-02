@@ -483,1186 +483,1045 @@ class FileManager:
 # GRAPHICAL USER INTERFACE
 
 class WagnerWhitinGUI:
-
     def __init__(self, root):
-
         self.root = root
-        self.root.title("Wagner-Whitin Algorithm")
+        self.root.title("Wagner–Whitin Production Planner")
+        self.root.geometry("1420x900")
+        self.root.minsize(1080, 720)
 
-        self.root.geometry("1350x900")
-        self.root.minsize(1000, 700)
+        self.colors = {
+            "background": "#F4F7FB",
+            "surface": "#FFFFFF",
+            "primary": "#2359A8",
+            "primary_hover": "#194889",
+            "primary_soft": "#EAF2FF",
+            "success": "#16835B",
+            "success_soft": "#E9F7F1",
+            "danger": "#B42318",
+            "danger_soft": "#FFF0EE",
+            "text": "#172033",
+            "muted": "#667085",
+            "border": "#D9E2EC",
+            "table_alt": "#F7FAFC",
+        }
 
-        # ---------------- Colour theme ----------------
-        # Main GUI colours (unchanged from the original code)
-        self.bg_color = "#D0E6FD"
-        self.panel_color = "#FFFFFF"
-        self.primary_color = "#162660"
-        self.primary_dark = "#6CC4F0"
-        self.success_color = "#27834E"
-        self.text_color = "#162660"
-        self.border_color = "#F1E4D1"
+        self.bg_color = self.colors["background"]
+        self.panel_color = self.colors["surface"]
+        self.primary_color = self.colors["primary"]
+        self.primary_dark = self.colors["primary_hover"]
+        self.success_color = self.colors["success"]
+        self.text_color = self.colors["text"]
+        self.border_color = self.colors["border"]
 
         self.root.configure(bg=self.bg_color)
+        self._configure_styles()
+        self.build_gui()
 
-        style = ttk.Style()
+        self.root.bind("<Control-Return>", lambda _event: self.calculate())
+        self.root.bind("<F5>", lambda _event: self.calculate())
+        self.root.bind("<Control-o>", lambda _event: self.read_input())
+        self.root.after_idle(self.period_entry.focus_set)
+
+    def _configure_styles(self):
+        """Configure one consistent, accessible visual theme."""
+        style = ttk.Style(self.root)
         try:
             style.theme_use("clam")
         except tk.TclError:
             pass
 
-        style.configure("Main.TFrame", background=self.bg_color)
-        style.configure("TLabel",
-                        font=("Arial", 13),
-                        foreground=self.text_color,
-                        background=self.bg_color)
-        style.configure("TButton",
-                        font=("Arial", 12, "bold"),
-                        foreground="white",
-                        background=self.primary_color,
-                        padding=(14, 9),
-                        borderwidth=0)
-        style.map("TButton",
-                  background=[("active", self.primary_dark),
-                              ("pressed", self.primary_dark)])
-
-        style.configure("TEntry",
-                        font=("Arial", 14),
-                        padding=6,
-                        fieldbackground="white",
-                        foreground=self.text_color)
-
-        style.configure("TLabelframe",
-                        background=self.panel_color,
-                        bordercolor=self.border_color,
-                        relief="solid")
-        style.configure("TLabelframe.Label",
-                        font=("Arial", 14, "bold"),
-                        foreground=self.primary_color,
-                        background=self.panel_color)
-
-        style.configure("Treeview",
-                        font=("Arial", 13),
-                        rowheight=34,
-                        background="white",
-                        fieldbackground="white",
-                        foreground=self.text_color)
-        style.configure("Treeview.Heading",
-                        font=("Arial", 13, "bold"),
-                        foreground="white",
-                        background=self.primary_color,
-                        padding=8)
-        style.map("Treeview",
-                  background=[("selected", "#D0E6FD")],
-                  foreground=[("selected", self.text_color)])
-        style.map("Treeview.Heading",
-                  background=[("active", self.primary_dark)])
-
-        self.build_gui()
-
-    # BUILD GUI
-    def build_gui(self):
-
-        # Store demand input boxes and calculation result
-        self.demand_entries = []
-        self.results = None
-
-        # =========================
-        # GUI FONT AND STYLE SETTINGS
-        # =========================
-        style = ttk.Style()
+        style.configure("App.TFrame", background=self.bg_color)
+        style.configure("Card.TFrame", background=self.panel_color)
+        style.configure("Header.TFrame", background=self.panel_color)
 
         style.configure(
             "TLabel",
-            font=("Arial", 13)
+            font=("Segoe UI", 10),
+            foreground=self.text_color,
+            background=self.panel_color,
         )
-
         style.configure(
-            "TButton",
-            font=("Arial", 12, "bold"),
-            padding=(12, 8)
+            "Title.TLabel",
+            font=("Segoe UI Semibold", 22),
+            foreground=self.text_color,
+            background=self.panel_color,
+        )
+        style.configure(
+            "Subtitle.TLabel",
+            font=("Segoe UI", 10),
+            foreground=self.colors["muted"],
+            background=self.panel_color,
+        )
+        style.configure(
+            "CardTitle.TLabel",
+            font=("Segoe UI Semibold", 13),
+            foreground=self.text_color,
+            background=self.panel_color,
+        )
+        style.configure(
+            "Field.TLabel",
+            font=("Segoe UI Semibold", 9),
+            foreground=self.colors["muted"],
+            background=self.panel_color,
+        )
+        style.configure(
+            "Hint.TLabel",
+            font=("Segoe UI", 9),
+            foreground=self.colors["muted"],
+            background=self.panel_color,
+        )
+        style.configure(
+            "MetricName.TLabel",
+            font=("Segoe UI Semibold", 9),
+            foreground=self.colors["muted"],
+            background=self.panel_color,
+        )
+        style.configure(
+            "MetricValue.TLabel",
+            font=("Segoe UI Semibold", 15),
+            foreground=self.text_color,
+            background=self.panel_color,
+        )
+        style.configure(
+            "TotalValue.TLabel",
+            font=("Segoe UI Semibold", 15),
+            foreground=self.success_color,
+            background=self.panel_color,
+        )
+        style.configure(
+            "Status.TLabel",
+            font=("Segoe UI", 9),
+            foreground=self.colors["muted"],
+            background=self.panel_color,
         )
 
         style.configure(
             "TEntry",
-            font=("Arial", 14),
-            padding=6
+            font=("Segoe UI", 10),
+            padding=(9, 8),
+            fieldbackground="#FFFFFF",
+            foreground=self.text_color,
+            bordercolor=self.border_color,
+            lightcolor=self.border_color,
+            darkcolor=self.border_color,
+        )
+        style.map(
+            "TEntry",
+            bordercolor=[("focus", self.primary_color)],
+            lightcolor=[("focus", self.primary_color)],
+            darkcolor=[("focus", self.primary_color)],
+        )
+        style.configure(
+            "TSpinbox",
+            font=("Segoe UI", 10),
+            padding=(9, 8),
+            fieldbackground="#FFFFFF",
+            foreground=self.text_color,
+            bordercolor=self.border_color,
+            arrowcolor=self.primary_color,
         )
 
+        button_base = {
+            "font": ("Segoe UI Semibold", 10),
+            "padding": (14, 9),
+            "borderwidth": 0,
+        }
         style.configure(
-            "TLabelframe.Label",
-            font=("Arial", 16, "bold")
+            "Primary.TButton",
+            foreground="#FFFFFF",
+            background=self.primary_color,
+            **button_base,
+        )
+        style.map(
+            "Primary.TButton",
+            background=[
+                ("disabled", "#A9B9D1"),
+                ("pressed", self.primary_dark),
+                ("active", self.primary_dark),
+            ],
+            foreground=[("disabled", "#F4F7FB")],
+        )
+        style.configure(
+            "Secondary.TButton",
+            foreground=self.primary_color,
+            background=self.colors["primary_soft"],
+            **button_base,
+        )
+        style.map(
+            "Secondary.TButton",
+            background=[
+                ("disabled", "#EEF2F6"),
+                ("pressed", "#D5E5FD"),
+                ("active", "#D5E5FD"),
+            ],
+            foreground=[("disabled", "#98A2B3")],
+        )
+        style.configure(
+            "Ghost.TButton",
+            foreground=self.text_color,
+            background="#FFFFFF",
+            borderwidth=1,
+            relief="solid",
+            font=("Segoe UI Semibold", 10),
+            padding=(13, 8),
+        )
+        style.map(
+            "Ghost.TButton",
+            background=[
+                ("disabled", "#F8FAFC"),
+                ("pressed", "#EEF2F6"),
+                ("active", "#F5F7FA"),
+            ],
+            foreground=[("disabled", "#98A2B3")],
+        )
+        style.configure(
+            "Danger.TButton",
+            foreground=self.colors["danger"],
+            background=self.colors["danger_soft"],
+            **button_base,
+        )
+        style.map(
+            "Danger.TButton",
+            background=[("pressed", "#FFE0DC"), ("active", "#FFE0DC")],
         )
 
         style.configure(
             "Treeview",
-            font=("Arial", 13),
-            rowheight=34
+            font=("Segoe UI", 10),
+            rowheight=31,
+            background="#FFFFFF",
+            fieldbackground="#FFFFFF",
+            foreground=self.text_color,
+            borderwidth=0,
         )
-
         style.configure(
             "Treeview.Heading",
-            font=("Arial", 13, "bold"),
-            padding=8
+            font=("Segoe UI Semibold", 10),
+            foreground=self.text_color,
+            background="#EDF3FA",
+            padding=(10, 9),
+            relief="flat",
+        )
+        style.map(
+            "Treeview",
+            background=[("selected", "#DCEAFF")],
+            foreground=[("selected", self.text_color)],
+        )
+        style.map(
+            "Treeview.Heading",
+            background=[("active", "#DDE8F5")],
         )
 
-        # Title
-        title = ttk.Label(
-            self.root,
-            text="WAGNER-WHITIN ALGORITHM",
-            font=("Arial", 26, "bold"), foreground=self.primary_color)
+    def _card(self, parent):
+        """Return a bordered white card and its content frame."""
+        outer = tk.Frame(
+            parent,
+            bg=self.panel_color,
+            highlightbackground=self.border_color,
+            highlightthickness=1,
+            bd=0,
+        )
+        content = ttk.Frame(outer, style="Card.TFrame", padding=18)
+        content.pack(fill="both", expand=True)
+        return outer, content
 
-        title.pack(pady=15)
+    # BUILD GUI
+    def build_gui(self):
+        self.demand_entries = []
+        self.results = None
 
-        subtitle = ttk.Label(self.root,text=(
-                "Dynamic Lot Size Model "
-                "| Duration is measured in Years"),
-            font=("Arial", 13))
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
 
-        subtitle.pack(pady=(0, 10))
+        # Header
+        header = ttk.Frame(self.root, style="Header.TFrame", padding=(24, 16))
+        header.grid(row=0, column=0, sticky="ew")
+        header.grid_columnconfigure(0, weight=1)
 
-        # INPUT FRAME
+        ttk.Label(
+            header,
+            text="Wagner–Whitin Production Planner",
+            style="Title.TLabel",
+        ).grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            header,
+            text="Find the minimum-cost dynamic lot-size plan across multiple years.",
+            style="Subtitle.TLabel",
+        ).grid(row=1, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(
+            header,
+            text="1  Enter costs     2  Add demand     3  Calculate",
+            style="Subtitle.TLabel",
+        ).grid(row=0, column=1, rowspan=2, sticky="e", padx=(24, 0))
 
-        input_frame = ttk.LabelFrame(self.root, text="Input Information", padding=18)
+        main = ttk.Frame(self.root, style="App.TFrame", padding=(20, 18, 20, 14))
+        main.grid(row=1, column=0, sticky="nsew")
+        main.grid_columnconfigure(0, minsize=355)
+        main.grid_columnconfigure(1, weight=1)
+        main.grid_rowconfigure(2, weight=1)
 
-        input_frame.pack(fill="x", padx=25, pady=8)
+        # Input card
+        input_card, input_frame = self._card(main)
+        input_card.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
 
-        # Number of years
-        ttk.Label(input_frame,text="Number of Years:").grid(
-            row=0,
-            column=0,
-            padx=12,
-            pady=9)
+        ttk.Label(input_frame, text="Planning inputs", style="CardTitle.TLabel").grid(
+            row=0, column=0, columnspan=2, sticky="w"
+        )
+        ttk.Label(
+            input_frame,
+            text="Enter the planning horizon and cost assumptions.",
+            style="Hint.TLabel",
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(2, 14))
 
-        self.period_entry = ttk.Entry(input_frame, width=17)
-        self.period_entry.grid(row=0,column=1) 
+        self.period_var = tk.StringVar()
+        self.setup_var = tk.StringVar()
+        self.holding_var = tk.StringVar()
+        self.variable_var = tk.StringVar()
 
-        # Setup cost
-        ttk.Label(input_frame,text="Setup Cost:").grid(
-            row=0,
-            column=2,
-            padx=12)
+        ttk.Label(input_frame, text="NUMBER OF YEARS", style="Field.TLabel").grid(
+            row=2, column=0, columnspan=2, sticky="w"
+        )
+        self.period_entry = ttk.Spinbox(
+            input_frame,
+            from_=1,
+            to=200,
+            textvariable=self.period_var,
+            width=12,
+        )
+        self.period_entry.grid(row=3, column=0, sticky="ew", pady=(4, 11))
+        ttk.Button(
+            input_frame,
+            text="Generate fields",
+            command=self.create_demands,
+            style="Secondary.TButton",
+        ).grid(row=3, column=1, sticky="ew", padx=(8, 0), pady=(4, 11))
+        self.period_entry.bind("<Return>", lambda _event: self.create_demands())
 
-        self.setup_entry = ttk.Entry(input_frame,width=15)
+        self._add_cost_field(
+            input_frame, 4, "SETUP COST", self.setup_var, "RM per production run"
+        )
+        self.setup_entry = self._last_cost_entry
+        self._add_cost_field(
+            input_frame,
+            6,
+            "HOLDING COST",
+            self.holding_var,
+            "RM per unit per year",
+        )
+        self.holding_entry = self._last_cost_entry
+        self._add_cost_field(
+            input_frame,
+            8,
+            "VARIABLE COST",
+            self.variable_var,
+            "RM per unit produced",
+        )
+        self.variable_entry = self._last_cost_entry
+        input_frame.grid_columnconfigure(0, weight=1)
+        input_frame.grid_columnconfigure(1, weight=1)
 
-        self.setup_entry.grid(row=0,column=3)
+        # Demand card with a scrollable field area
+        demand_card, demand_frame = self._card(main)
+        demand_card.grid(row=0, column=1, sticky="nsew")
+        demand_frame.grid_columnconfigure(0, weight=1)
+        demand_frame.grid_rowconfigure(2, weight=1)
 
-        # Holding cost
-        ttk.Label(input_frame,text="Holding Cost / Unit / Year:").grid(
-            row=1,
-            column=0,
-            padx=10,
-            pady=7)
+        ttk.Label(demand_frame, text="Demand schedule", style="CardTitle.TLabel").grid(
+            row=0, column=0, sticky="w"
+        )
+        self.demand_count_label = ttk.Label(
+            demand_frame,
+            text="Set the number of years, then generate the demand fields.",
+            style="Hint.TLabel",
+        )
+        self.demand_count_label.grid(row=1, column=0, sticky="w", pady=(2, 10))
 
-        self.holding_entry = ttk.Entry(input_frame,width=15)
-        self.holding_entry.grid( row=1,column=1)
+        demand_body = ttk.Frame(demand_frame, style="Card.TFrame")
+        demand_body.grid(row=2, column=0, sticky="nsew")
+        demand_body.grid_rowconfigure(0, weight=1)
+        demand_body.grid_columnconfigure(0, weight=1)
 
-        # Variable cost
+        self.demand_canvas = tk.Canvas(
+            demand_body,
+            bg=self.panel_color,
+            bd=0,
+            highlightthickness=0,
+            height=230,
+        )
+        demand_scroll = ttk.Scrollbar(
+            demand_body, orient="vertical", command=self.demand_canvas.yview
+        )
+        self.demand_canvas.configure(yscrollcommand=demand_scroll.set)
+        self.demand_canvas.grid(row=0, column=0, sticky="nsew")
+        demand_scroll.grid(row=0, column=1, sticky="ns")
 
-        ttk.Label(input_frame,text="Variable Cost / Unit:").grid(
-            row=1,
-            column=2,
-            padx=10)
+        self.demand_frame = ttk.Frame(self.demand_canvas, style="Card.TFrame")
+        self._demand_window = self.demand_canvas.create_window(
+            (0, 0), window=self.demand_frame, anchor="nw"
+        )
+        self.demand_frame.bind(
+            "<Configure>",
+            lambda _event: self.demand_canvas.configure(
+                scrollregion=self.demand_canvas.bbox("all")
+            ),
+        )
+        self.demand_canvas.bind(
+            "<Configure>",
+            lambda event: self.demand_canvas.itemconfigure(
+                self._demand_window, width=event.width
+            ),
+        )
+        self.demand_canvas.bind(
+            "<Enter>",
+            lambda _event: self.demand_canvas.bind_all(
+                "<MouseWheel>", self._scroll_demands
+            ),
+        )
+        self.demand_canvas.bind(
+            "<Leave>", lambda _event: self.demand_canvas.unbind_all("<MouseWheel>")
+        )
 
-        self.variable_entry = ttk.Entry(input_frame,width=15)
+        # Action bar
+        action_card, action_frame = self._card(main)
+        action_card.grid(row=1, column=0, columnspan=2, sticky="ew", pady=12)
+        action_frame.grid_columnconfigure(3, weight=1)
 
-        self.variable_entry.grid(row=1,column=3)
+        ttk.Button(
+            action_frame,
+            text="Calculate plan",
+            command=self.calculate,
+            style="Primary.TButton",
+        ).grid(row=0, column=0, padx=(0, 8), sticky="w")
+        ttk.Button(
+            action_frame,
+            text="Open CSV",
+            command=self.read_input,
+            style="Ghost.TButton",
+        ).grid(row=0, column=1, padx=4)
+        ttk.Button(
+            action_frame,
+            text="Clear",
+            command=self.clear,
+            style="Danger.TButton",
+        ).grid(row=0, column=2, padx=4)
 
-        # Create demand fields
-        ttk.Button(input_frame,text="Create Demand Fields",command=self.create_demands).grid(
-            row=0,
-            column=4,
-            rowspan=2,
-            padx=20,
-            ipadx=10)
+        self.export_csv_button = ttk.Button(
+            action_frame,
+            text="Export CSV",
+            command=self.export_csv,
+            style="Ghost.TButton",
+            state="disabled",
+        )
+        self.export_csv_button.grid(row=1, column=0, padx=(0, 4), pady=(8, 0))
+        self.export_report_button = ttk.Button(
+            action_frame,
+            text="Export report",
+            command=self.export_report,
+            style="Ghost.TButton",
+            state="disabled",
+        )
+        self.export_report_button.grid(row=1, column=1, padx=4, pady=(8, 0))
+        self.paths_button = ttk.Button(
+            action_frame,
+            text="View plans",
+            command=self.show_optimal_paths,
+            style="Secondary.TButton",
+            state="disabled",
+        )
+        self.paths_button.grid(row=1, column=4, padx=4, pady=(8, 0))
+        self.trend_button = ttk.Button(
+            action_frame,
+            text="Demand chart",
+            command=self.show_demand_trend,
+            style="Secondary.TButton",
+            state="disabled",
+        )
+        self.trend_button.grid(row=1, column=5, padx=4, pady=(8, 0))
+        self.flow_button = ttk.Button(
+            action_frame,
+            text="Network diagram",
+            command=self.show_network_flow,
+            style="Secondary.TButton",
+            state="disabled",
+        )
+        self.flow_button.grid(row=1, column=6, padx=(4, 0), pady=(8, 0))
 
-        # DEMAND FRAME
-        self.demand_frame = ttk.LabelFrame(self.root, text="Demand for Each Year", padding=18)
-        self.demand_frame.pack(fill="x", padx=25, pady=10)
+        # Results card
+        result_card, result_frame = self._card(main)
+        result_card.grid(row=2, column=0, columnspan=2, sticky="nsew")
+        result_frame.grid_columnconfigure(0, weight=1)
+        result_frame.grid_rowconfigure(3, weight=1)
 
-        # BUTTON FRAME
-        button_frame = ttk.Frame(self.root, style="Main.TFrame")
-        button_frame.pack(pady=12)
+        ttk.Label(result_frame, text="Optimal production plan", style="CardTitle.TLabel").grid(
+            row=0, column=0, sticky="w"
+        )
+        ttk.Label(
+            result_frame,
+            text="All production paths that achieve the same minimum total cost.",
+            style="Hint.TLabel",
+        ).grid(row=1, column=0, sticky="w", pady=(2, 12))
 
-        # Calculate
-        ttk.Button(button_frame,text="Calculate",command=self.calculate).grid(
-            row=0,
-            column=0,
-            padx=7)
-
-        # Read Input
-        ttk.Button(button_frame,text="Read Input",command=self.read_input).grid(
-            row=0,
-            column=1,
-            padx=7)
-
-        # Export CSV
-        ttk.Button(button_frame,text="Export CSV",command=self.export_csv).grid(
-            row=0,
-            column=2,
-            padx=7)
-
-        # Export Report
-        ttk.Button(button_frame,text="Export Report",command=self.export_report).grid(
-            row=0,
-            column=3,
-            padx=7)
-
-        # Clear
-        ttk.Button(button_frame,text="Clear",command=self.clear).grid(
-            row=1,
-            column=0,
-            pady=(8, 0),
-            padx=7)
-
-        # Exit
-        ttk.Button(button_frame,text="Exit",command=self.root.destroy).grid(
-            row=1,
-            column=3,
-            pady=(8, 0),
-            padx=7)
-
-        ttk.Button(button_frame,text="Demand Trend Line Graph",command=self.show_demand_trend).grid(
-            row=1,
-            column=1,
-            pady=(8, 0),
-            padx=7)
-
-        ttk.Button(button_frame,text="Network Flow Diagram",command=self.show_network_flow).grid(
-            row=1,
-            column=2,
-            pady=(8, 0),
-            padx=7)
-
-        # Reserve the footer before packing the expanding result table.  This
-        # keeps the cost and status wording visible on shorter screens.
-        footer_frame = ttk.Frame(self.root, style="Main.TFrame")
-        footer_frame.pack(side="bottom", fill="x")
-
-        self.cost_label = ttk.Label(
-            footer_frame,
-            text="Total Optimal Cost: RM 0.00",
-            font=("Arial", 20, "bold"),
-            foreground=self.success_color,
-            background=self.bg_color)
-        self.cost_label.pack(pady=(8, 10))
-
-        self.status = ttk.Label(
-            footer_frame,
-            text="Ready.",
-            font=("Arial", 12),
-            relief="sunken",
-            anchor="w")
-        self.status.pack(fill="x")
-
-        # RESULT TABLE
-        result_frame = ttk.LabelFrame(
-            self.root,
-            text="Optimal Producing Plan",
-            padding=12)
-
-        result_frame.pack(
-            fill="both",
-            expand=True,
-            padx=25,
-            pady=7)
+        metrics = ttk.Frame(result_frame, style="Card.TFrame")
+        metrics.grid(row=2, column=0, sticky="ew", pady=(0, 12))
+        self.metric_values = {}
+        metric_definitions = (
+            ("solutions", "OPTIMAL SOLUTIONS", "0", False),
+            ("setup", "SETUP COST", "RM 0.00", False),
+            ("holding", "HOLDING COST", "RM 0.00", False),
+            ("variable", "VARIABLE COST", "RM 0.00", False),
+            ("total", "MINIMUM TOTAL COST", "RM 0.00", True),
+        )
+        for column, (key, label, value, is_total) in enumerate(metric_definitions):
+            metrics.grid_columnconfigure(column, weight=1)
+            metric_box = tk.Frame(
+                metrics,
+                bg=self.panel_color,
+                highlightbackground=self.border_color,
+                highlightthickness=1,
+                padx=12,
+                pady=9,
+            )
+            metric_box.grid(
+                row=0,
+                column=column,
+                sticky="ew",
+                padx=(0 if column == 0 else 4, 0 if column == 4 else 4),
+            )
+            ttk.Label(metric_box, text=label, style="MetricName.TLabel").pack(anchor="w")
+            value_label = ttk.Label(
+                metric_box,
+                text=value,
+                style="TotalValue.TLabel" if is_total else "MetricValue.TLabel",
+            )
+            value_label.pack(anchor="w", pady=(2, 0))
+            self.metric_values[key] = value_label
 
         columns = (
             "Solution",
             "Year",
             "Demand",
-            "Produce Quantity",
-            "Covers Until"
+            "Production Quantity",
+            "Coverage",
         )
 
+        table_holder = ttk.Frame(result_frame, style="Card.TFrame")
+        table_holder.grid(row=3, column=0, sticky="nsew")
+        table_holder.grid_rowconfigure(0, weight=1)
+        table_holder.grid_columnconfigure(0, weight=1)
         self.table = ttk.Treeview(
-            result_frame,
+            table_holder,
             columns=columns,
-            show="headings"
+            show="headings",
+            selectmode="browse",
         )
 
+        headings = {
+            "Solution": ("Solution", 130),
+            "Year": ("Year", 80),
+            "Demand": ("Demand (units)", 145),
+            "Production Quantity": ("Production quantity", 180),
+            "Coverage": ("Covers through", 145),
+        }
         for column in columns:
+            heading, width = headings[column]
+            self.table.heading(column, text=heading)
+            self.table.column(column, anchor="center", width=width, minwidth=80)
 
-            self.table.heading(
-                column,
-                text=column
-            )
-
-            self.table.column(
-                column,
-                anchor="center",
-                width=175
-            )
-
-        # Scrollbar for the result table
-        table_scrollbar = ttk.Scrollbar(
-            result_frame,
-            orient="vertical",
-            command=self.table.yview
+        table_scroll_y = ttk.Scrollbar(
+            table_holder, orient="vertical", command=self.table.yview
         )
-        self.table.configure(yscrollcommand=table_scrollbar.set)
-
-        self.table.pack(
-            side="left",
-            fill="both",
-            expand=True
+        table_scroll_x = ttk.Scrollbar(
+            table_holder, orient="horizontal", command=self.table.xview
         )
-
-        table_scrollbar.pack(
-            side="right",
-            fill="y"
+        self.table.configure(
+            yscrollcommand=table_scroll_y.set, xscrollcommand=table_scroll_x.set
         )
+        self.table.grid(row=0, column=0, sticky="nsew")
+        table_scroll_y.grid(row=0, column=1, sticky="ns")
+        table_scroll_x.grid(row=1, column=0, sticky="ew")
+        self.table.tag_configure("even", background="#FFFFFF")
+        self.table.tag_configure("odd", background=self.colors["table_alt"])
+        self.table.tag_configure(
+            "production", foreground=self.primary_color, font=("Segoe UI Semibold", 10)
+        )
+        self.table.tag_configure("separator", background="#E6ECF3")
+
+        # Status bar
+        status_bar = ttk.Frame(self.root, style="Header.TFrame", padding=(20, 8))
+        status_bar.grid(row=2, column=0, sticky="ew")
+        status_bar.grid_columnconfigure(0, weight=1)
+        self.status = ttk.Label(status_bar, text="Ready.", style="Status.TLabel")
+        self.status.grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            status_bar,
+            text="Tip: Ctrl+Enter calculates · Ctrl+O opens a CSV",
+            style="Status.TLabel",
+        ).grid(row=0, column=1, sticky="e")
+
+        # Retained for compatibility with older code that updates this label.
+        self.cost_label = self.metric_values["total"]
+
+    def _add_cost_field(self, parent, row, label, variable, hint):
+        ttk.Label(parent, text=label, style="Field.TLabel").grid(
+            row=row, column=0, columnspan=2, sticky="w"
+        )
+        field_row = ttk.Frame(parent, style="Card.TFrame")
+        field_row.grid(row=row + 1, column=0, columnspan=2, sticky="ew", pady=(4, 11))
+        field_row.grid_columnconfigure(1, weight=1)
+        ttk.Label(field_row, text="RM", style="Hint.TLabel").grid(
+            row=0, column=0, padx=(0, 8)
+        )
+        entry = ttk.Entry(field_row, textvariable=variable)
+        entry.grid(row=0, column=1, sticky="ew")
+        ttk.Label(field_row, text=hint, style="Hint.TLabel").grid(
+            row=1, column=1, sticky="w", pady=(3, 0)
+        )
+        self._last_cost_entry = entry
+
+    def _scroll_demands(self, event):
+        self.demand_canvas.yview_scroll(int(-event.delta / 120), "units")
+
+    def _set_result_actions(self, enabled):
+        state = "normal" if enabled else "disabled"
+        for button in (
+            self.export_csv_button,
+            self.export_report_button,
+            self.paths_button,
+            self.trend_button,
+            self.flow_button,
+        ):
+            button.configure(state=state)
 
     # CREATE DEMAND INPUT BOXES
     def create_demands(self):
-
-        for widget in (self.demand_frame.winfo_children()):
-
+        for widget in self.demand_frame.winfo_children():
             widget.destroy()
-
         self.demand_entries = []
-
         try:
-            n = validate_number(self.period_entry.get(),integer=True,allow_zero=False)
-
+            n = validate_number(self.period_entry.get(), integer=True, allow_zero=False)
         except ValueError as error:
-            messagebox.showerror("Input Error",str(error))
+            messagebox.showerror("Input Error", str(error))
             return
 
+        if n > 200:
+            messagebox.showerror("Input Error", "Number of years cannot exceed 200.")
+            return
+
+        columns = 4
+        for column in range(columns):
+            self.demand_frame.grid_columnconfigure(column, weight=1, uniform="demand")
+
         for i in range(n):
-            row = i // 5
-            column = (i % 5) * 2
-            ttk.Label(self.demand_frame,text=f"Year {i + 1}:").grid(
-                row=row,
-                column=column,
-                padx=8,
-                pady=5)
-
-            entry = ttk.Entry(self.demand_frame, width=14)
-
-            entry.grid(
-                row=row,
-                column=column + 1,
-                padx=8,
-                pady=5)
-
+            row = i // columns
+            column = i % columns
+            cell = ttk.Frame(self.demand_frame, style="Card.TFrame", padding=(0, 0, 10, 10))
+            cell.grid(row=row, column=column, sticky="ew")
+            cell.grid_columnconfigure(0, weight=1)
+            ttk.Label(cell, text=f"YEAR {i + 1}", style="Field.TLabel").grid(
+                row=0, column=0, sticky="w", pady=(0, 3)
+            )
+            entry = ttk.Entry(cell)
+            entry.grid(row=1, column=0, sticky="ew")
             self.demand_entries.append(entry)
 
-        self.status.config(text=(
-                f"Demand fields created for "
-                f"{n} years."))
+        self.demand_count_label.config(
+            text=f"{n} demand value{'s' if n != 1 else ''} required. Values may be zero."
+        )
+        self.demand_canvas.yview_moveto(0)
+        if self.demand_entries:
+            self.demand_entries[0].focus_set()
+        self.status.config(text=f"Demand fields generated for {n} years.")
 
     # GET INPUT FROM GUI
     def get_inputs(self):
-
-        n = validate_number(self.period_entry.get(),integer=True,allow_zero=False)
-        s = validate_number(self.setup_entry.get(),allow_zero=False)
-        h = validate_number(self.holding_entry.get(),allow_zero=False)
-        v = validate_number(self.variable_entry.get(),allow_zero=False)
-
+        n = validate_number(self.period_entry.get(), integer=True, allow_zero=False)
+        s = validate_number(self.setup_entry.get(), allow_zero=False)
+        h = validate_number(self.holding_entry.get(), allow_zero=False)
+        v = validate_number(self.variable_entry.get(), allow_zero=False)
         if len(self.demand_entries) != n:
-
-            raise ValueError("Please click 'Create Demand Fields' before entering demand.")
-
+            raise ValueError("Generate the demand fields for the selected number of years first.")
         demands = []
-
-        for entry in self.demand_entries:
-            demand = validate_number(entry.get(),allow_zero=True)
-
+        for index, entry in enumerate(self.demand_entries, start=1):
+            try:
+                demand = validate_number(entry.get(), allow_zero=True)
+            except ValueError as error:
+                entry.focus_set()
+                raise ValueError(f"Year {index} demand: {error}") from error
             demands.append(demand)
-
-        return (n,demands,s,h,v)
+        return (n, demands, s, h, v)
 
     # RUN CALCULATION FROM GUI
     def calculate(self):
-            try:
-                n, demands, s, h, v = (self.get_inputs())
-
-                # Call the ORIGINAL WWA calculation
-                self.results = (wagner_whitin_backward(n,demands,s,h,v))
-
-                # Display returned results
-                self.display_results()
-                self.status.config(text="Calculation completed successfully.")
-
-            except Exception as error:
-                messagebox.showerror("Calculation Error",str(error))
+        try:
+            n, demands, s, h, v = self.get_inputs()
+            self.status.config(text="Calculating the optimal production plan…")
+            self.root.update_idletasks()
+            self.results = wagner_whitin_backward(n, demands, s, h, v)
+            self.display_results()
+            self._set_result_actions(True)
+        except Exception as error:
+            messagebox.showerror("Calculation Error", str(error))
 
     # DISPLAY RESULTS IN GUI
  
     # DISPLAY ALL OPTIMAL RESULTS IN MAIN TABLE
     def display_results(self):
-
-        # ============================================================
-        # CLEAR OLD RESULTS
-        # ============================================================
-
         for item in self.table.get_children():
             self.table.delete(item)
-
-        # ============================================================
-        # GET RESULTS
-        # ============================================================
-
         optimal_paths = self.results["optimal_paths"]
         demands = self.results["demands"]
-
         total_cost = self.results["total_cost"]
-
-        # Number of optimal solutions
         path_count = len(optimal_paths)
 
-        # ============================================================
-        # DISPLAY EVERY OPTIMAL PATH
-        # ============================================================
-
-        for path_number, path in enumerate(
-            optimal_paths,
-            start=1
-            
-        ):
-
-            # --------------------------------------------------------
-            # Calculate produce quantity for every year
-            # --------------------------------------------------------
-
+        row_number = 0
+        for path_number, path in enumerate(optimal_paths, start=1):
             produce_quantities = [0.0] * len(demands)
-
             produce_end_years = [0] * len(demands)
-
             for start_year, end_year in path:
+                qty = sum(demands[start_year - 1:end_year])
+                produce_quantities[start_year - 1] = qty
+                produce_end_years[start_year - 1] = end_year
 
-                # Calculate quantity covered by this produce
-                qty = sum(
-                    demands[
-                        start_year - 1:end_year
-                    ]
-                )
-
-                produce_quantities[
-                    start_year - 1
-                ] = qty
-
-                produce_end_years[
-                    start_year - 1
-                ] = end_year
-
-            # --------------------------------------------------------
-            # DISPLAY EVERY YEAR
-            # --------------------------------------------------------
-
-            for year in range(
-                1,
-                len(demands) + 1
-            ):
-
-                produce_qty = produce_quantities[
-                    year - 1
-                ]
-
-                # ----------------------------------------------------
-                # If produce is placed in this year
-                # ----------------------------------------------------
-
+            for year in range(1, len(demands) + 1):
+                produce_qty = produce_quantities[year - 1]
                 if produce_qty > 0:
-
-                    produce_text = (
-                        f"{produce_qty:.0f}"
-                    )
-
-                    covers_until = (
-                        produce_end_years[
-                            year - 1
-                        ]
-                    )
-
-                # ----------------------------------------------------
-                # No produce in this year
-                # ----------------------------------------------------
-
+                    produce_text = f"{produce_qty:,.0f}"
+                    end_year = produce_end_years[year - 1]
+                    covers_until = f"Year {end_year}"
                 else:
+                    produce_text = "—"
+                    covers_until = "—"
 
-                    produce_text = "-"
-
-                    covers_until = "-"
-
-                # ----------------------------------------------------
-                # Insert into table
-                # ----------------------------------------------------
-
+                base_tag = "even" if row_number % 2 == 0 else "odd"
+                tags = (base_tag, "production") if produce_qty > 0 else (base_tag,)
                 self.table.insert(
                     "",
                     "end",
                     values=(
-                        f"Path {path_number}",
+                        f"Plan {path_number}" if year == 1 else "",
                         year,
-                        f"{demands[year - 1]:.0f}",
+                        f"{demands[year - 1]:,.0f}",
                         produce_text,
-                        covers_until
-                    )
+                        covers_until,
+                    ),
+                    tags=tags,
                 )
-
+                row_number += 1
             if path_number < path_count:
-                    self.table.insert("", "end", values=("", "", "", "", ""))
+                self.table.insert(
+                    "", "end", values=("", "", "", "", ""), tags=("separator",)
+                )
+                row_number += 1
 
-                
-
-        # ============================================================
-        # UPDATE COST DISPLAY
-        # ============================================================
-
-        self.cost_label.config(
-            text=(
-                f"Optimal Solutions: {path_count}    |    "
-                f"Minimum Total Cost: "
-                f"RM {total_cost:,.2f}"
-            )
+        self.metric_values["solutions"].config(text=f"{path_count}")
+        self.metric_values["setup"].config(
+            text=f"RM {self.results['total_setup_cost']:,.2f}"
         )
-
-        # ============================================================
-        # UPDATE STATUS
-        # ============================================================
-
+        self.metric_values["holding"].config(
+            text=f"RM {self.results['total_holding_cost']:,.2f}"
+        )
+        self.metric_values["variable"].config(
+            text=f"RM {self.results['total_variable_cost']:,.2f}"
+        )
+        self.metric_values["total"].config(text=f"RM {total_cost:,.2f}")
         self.status.config(
-            text=(
-                f"Calculation completed. "
-                f"{path_count} optimal solution(s) found "
-                f"with the same minimum total cost."
-            )
+            text=f"Calculation complete — {path_count} optimal plan(s) found at RM {total_cost:,.2f}."
         )
 
 
     # READ INPUT
     def read_input(self):
-
         try:
-
             data = FileManager.read_input()
             if data is None:
                 return
-            
             n, demands, s, h, v = data
 
-            # Fill number of years
-            self.period_entry.delete(0,tk.END)
-            self.period_entry.insert(0,str(n))
-
-            # Fill setup cost
-            self.setup_entry.delete(0,tk.END)
-            self.setup_entry.insert(0,str(s))
-
-            # Fill holding cost
-            self.holding_entry.delete(0,tk.END)
-            self.holding_entry.insert(0,str(h))
-
-            # Fill variable cost
-            self.variable_entry.delete(0,tk.END)
-            self.variable_entry.insert(0,str(v))
-
-            # Create demand fields
+            self.period_var.set(str(n))
+            self.setup_var.set(str(s))
+            self.holding_var.set(str(h))
+            self.variable_var.set(str(v))
             self.create_demands()
-
-            # Fill demand
             for i in range(n):
-
-                self.demand_entries[i].insert(0,str(demands[i]))
-
+                self.demand_entries[i].insert(0, str(demands[i]))
             self.status.config(text="Input file loaded successfully.")
-
-            messagebox.showinfo(
-                "Success",
-                "Input data loaded successfully.")
-
+            messagebox.showinfo("Input Loaded", "The CSV data is ready to calculate.")
         except Exception as error:
-
-            messagebox.showerror(
-                "Read Error",
-                str(error))
+            messagebox.showerror("Read Error", str(error))
 
     # EXPORT CSV
 
     def export_csv(self):
-
         if self.results is None:
-            messagebox.showwarning(
-                "No Results",
-                "Please calculate the WWA solution first.")
-
+            messagebox.showwarning("No Results", "Calculate a production plan first.")
             return
-
         try:
-
-            success = (
-                FileManager.export_csv(
-                    self.results
-                )
-            )
-
+            success = FileManager.export_csv(self.results)
             if success:
-
-                messagebox.showinfo(
-                    "Success",
-                    "Results exported to CSV successfully.")
-
+                messagebox.showinfo("Export Complete", "Results were exported to CSV.")
                 self.status.config(text="Results exported to CSV.")
-
         except Exception as error:
-
-            messagebox.showerror("Export Error",str(error))
+            messagebox.showerror("Export Error", str(error))
 
     # EXPORT TEXT REPORT
 
     def export_report(self):
-
         if self.results is None:
-
-            messagebox.showwarning(
-                "No Results",
-                "Please calculate the WWA solution first."
-            )
-
+            messagebox.showwarning("No Results", "Calculate a production plan first.")
             return
-
         try:
-
-            success = (
-                FileManager.export_report(
-                    self.results
-                )
-            )
-
+            success = FileManager.export_report(self.results)
             if success:
-
-                messagebox.showinfo(
-                    "Success",
-                    "WWA report exported successfully.")
-
+                messagebox.showinfo("Export Complete", "The text report was exported.")
                 self.status.config(text="Report exported.")
-
         except Exception as error:
-
-            messagebox.showerror(
-                "Export Error",
-                str(error))
+            messagebox.showerror("Export Error", str(error))
 
     # demand trend line graph
     def show_demand_trend(self):
-
-        # Check whether calculation has been performed
         if self.results is None:
-            messagebox.showwarning(
-                "No Results",
-                "Please calculate the WWA solution first.")
+            messagebox.showwarning("No Results", "Calculate a production plan first.")
             return
-
-        # Create new window
         graph_window = tk.Toplevel(self.root)
-        graph_window.title("Demand Trend")
+        graph_window.title("Demand Trend · Wagner–Whitin Planner")
         graph_window.geometry("850x600")
-
-        # Get data from WWA results
-        years = list(
-            range(1, self.results["n"] + 1)
-        )
-
+        graph_window.minsize(680, 460)
+        graph_window.configure(bg=self.bg_color)
+        years = list(range(1, self.results["n"] + 1))
         demands = self.results["demands"]
-
-        # Create matplotlib figure
-        figure = Figure(
-            figsize=(8, 5),
-            dpi=100)
-
+        figure = Figure(figsize=(8, 5), dpi=100, facecolor=self.panel_color)
         axis = figure.add_subplot(111)
-
-        # Plot demand trend
         axis.plot(
             years,
             demands,
             marker="o",
-            linewidth=2,
-            markersize=6)
-
-        # Graph title
+            linewidth=2.5,
+            markersize=7,
+            color=self.primary_color,
+            markerfacecolor="#FFFFFF",
+            markeredgewidth=2,
+        )
         axis.set_title(
-            "Demand Trend Line Graph",
-            fontsize=18,
-            fontweight="bold")
-
-        # Axis labels
-        axis.set_xlabel("Year", fontsize=13)
-        axis.set_ylabel("Number of Demand", fontsize=13)
-
-        # Show every year on x-axis
+            "Demand by Year", fontsize=17, fontweight="bold", color=self.text_color, pad=18
+        )
+        axis.set_xlabel("Year", fontsize=11, color=self.colors["muted"])
+        axis.set_ylabel("Demand (units)", fontsize=11, color=self.colors["muted"])
         axis.set_xticks(years)
-
-        # Add grid
-        axis.grid(
-            True,
-            linestyle="--",
-            alpha=0.5)
-
-        # Display value for every points
-        for year, demand in zip(
-            years,
-            demands):
-
+        axis.grid(True, linestyle="--", alpha=0.25)
+        axis.spines[["top", "right"]].set_visible(False)
+        for year, demand in zip(years, demands):
             axis.annotate(
-                f"{demand:.0f}",
+                f"{demand:,.0f}",
                 (year, demand),
                 textcoords="offset points",
                 xytext=(0, 8),
-                ha="center")
-
-        # Adjust layout
-        figure.tight_layout()
-
-        # Put matplotlib graph inside Tkinter window
-        canvas = FigureCanvasTkAgg(
-            figure,
-            master=graph_window)
-
-        canvas.draw()
-
-        canvas.get_tk_widget().pack(
-            fill="both",
-            expand=True,
-            padx=10,
-            pady=10)
-        
-            # DIRECTED NETWORK FLOW DIAGRAM
-    def show_network_flow(self):
-
-        # Check whether calculation has been performed
-        if self.results is None:
-            messagebox.showwarning(
-                "No Results",
-                "Please calculate the WWA solution first."
+                ha="center",
+                color=self.colors["muted"],
             )
-            return
+        figure.tight_layout()
+        canvas = FigureCanvasTkAgg(figure, master=graph_window)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True, padx=18, pady=18)
 
-        # Get WWA results
+    # DIRECTED NETWORK FLOW DIAGRAM
+    def show_network_flow(self):
+        if self.results is None:
+            messagebox.showwarning("No Results", "Calculate a production plan first.")
+            return
         n = self.results["n"]
         demands = self.results["demands"]
-
-        # Get all optimal paths
         optimal_paths = self.results["optimal_paths"]
         total_cost = self.results["total_cost"]
-
-        # Check if optimal paths exist
         if not optimal_paths:
-            messagebox.showwarning(
-                "No Optimal Path",
-                "No optimal path was found."
-            )
+            messagebox.showwarning("No Optimal Path", "No optimal path was found.")
             return
-
-        # Create window
         flow_window = tk.Toplevel(self.root)
-        flow_window.title("Multiple Optimal Network Flow Paths")
-        flow_window.geometry("1500x900")
-
-        # Create figure
-        figure = Figure(
-            figsize=(14, 8),
-            dpi=100
-        )
-
+        flow_window.title("Optimal Network Paths · Wagner–Whitin Planner")
+        flow_window.geometry("1350x800")
+        flow_window.minsize(900, 600)
+        flow_window.configure(bg=self.bg_color)
+        figure = Figure(figsize=(13, 7.5), dpi=100, facecolor=self.panel_color)
         axis = figure.add_subplot(111)
-
-        # Node structure
         node_count = n + 1
         x_positions = list(range(1, node_count + 1))
         y_position = 0
-
-        # Draw nodes
         axis.scatter(
             x_positions,
             [y_position] * node_count,
-            s=1000,
-         zorder=5
+            s=920,
+            color=self.primary_color,
+            edgecolor="#FFFFFF",
+            linewidth=2,
+            zorder=5,
         )
-
-        # Node labels
         for i in range(1, n + 1):
             axis.text(
-                i,
-                y_position,
-                f"Y{i}",
-                ha="center",
-                va="center",
-                fontsize=12,
-                fontweight="bold",
-                color="white",
-             zorder=6
+                i, y_position, f"Y{i}", ha="center", va="center",
+                fontsize=11, fontweight="bold", color="white", zorder=6
             )
-
-        # End node
         axis.text(
-            n + 1,
-            y_position,
-            "END",
-            ha="center",
-            va="center",
-            fontsize=12,
-            fontweight="bold",
-            color="white",
-         zorder=6
+            n + 1, y_position, "END", ha="center", va="center",
+            fontsize=10, fontweight="bold", color="white", zorder=6
         )
-
-        # Demand labels
         for i in range(1, n + 1):
             axis.text(
-                i,
-                -2.4,
-                f"Demand = {demands[i - 1]:.0f}",
-                ha="center",
-                va="top",
-                fontsize=11
+                i, -2.2, f"{demands[i - 1]:,.0f} units",
+                ha="center", va="top", fontsize=9, color=self.colors["muted"]
             )
-
-        # Draw all possible directed arcs (gray)
         for start in range(1, n + 1):
             for end in range(start + 1, n + 2):
                 distance = end - start
                 arc_height = 0.20 + distance * 0.08
                 axis.annotate(
-                    "",
-                    xy=(end, 0),
-                    xytext=(start, 0),
+                    "", xy=(end, 0), xytext=(start, 0),
                     arrowprops=dict(
-                        arrowstyle="->",
-                        linewidth=1,
-                        alpha=0.15,
-                        color="gray",
-                        connectionstyle=f"arc3,rad=-{arc_height}"
+                        arrowstyle="->", linewidth=1, alpha=0.13,
+                        color="#667085", connectionstyle=f"arc3,rad=-{arc_height}"
                     ),
-                 zorder=1
+                    zorder=1,
                 )
-
-        # Draw all optimal paths
         path_count = len(optimal_paths)
-
-        # Height spacing used to separate multiple paths
         path_spacing = 0.10
-
+        palette = ("#2359A8", "#16835B", "#D97706", "#8B5CF6", "#D14343")
         for path_index, path in enumerate(optimal_paths, start=1):
-
-            # Calculate path-specific vertical offset
             if path_count == 1:
                 path_offset = 0
             else:
                 path_offset = ((path_index - 1) - (path_count - 1) / 2) * path_spacing
-
-            path_height_offset = path_offset
-
-            # Draw every arc belonging to this optimal path
             for start_year, end_year in path:
-
-                # Convert WWA period representation into network node representation
                 network_start = start_year
                 network_end = end_year + 1
                 distance = network_end - network_start
-
-                # Base arc height
                 base_height = 0.25 + distance * 0.10
-
-                # Add path separation
-                arc_height = base_height + path_height_offset
-
-                # Draw optimal arc
+                arc_height = base_height + path_offset
                 axis.annotate(
-                    "",
-                    xy=(network_end, 0),
-                    xytext=(network_start, 0),
+                    "", xy=(network_end, 0), xytext=(network_start, 0),
                     arrowprops=dict(
-                        arrowstyle="->",
-                        linewidth=3,
-                        alpha=0.90,
-                        color=f"C{(path_index - 1) % 10}",
-                        connectionstyle=f"arc3,rad=-{arc_height}"
+                        arrowstyle="->", linewidth=3, alpha=0.92,
+                        color=palette[(path_index - 1) % len(palette)],
+                        connectionstyle=f"arc3,rad=-{arc_height}",
                     ),
-                 zorder=4
+                    zorder=4,
                 )
-
-        # Axis title
         axis.set_title(
-            "Directed Network Flow Diagram\n",
-            fontsize=16,
-            fontweight="bold",
-            pad=25
+            "Optimal Production Network", fontsize=17, fontweight="bold",
+            color=self.text_color, pad=25
         )
-
-        # Axis label
-        axis.set_xlabel("Planning Period", fontsize=11)
-
-        # X-axis settings
+        axis.set_xlabel("Planning period", fontsize=10, color=self.colors["muted"])
         axis.set_xlim(0.5, n + 1.5)
         axis.set_xticks(x_positions)
-
-        # Y-axis settings – increase range to accommodate multiple paths
         max_path_height = 0.25 + n * 0.10 + abs(path_spacing * path_count) + 1.0
         axis.set_ylim(-2.5, max_path_height)
         axis.set_yticks([])
-
-        # Grid
         axis.grid(axis="x", linestyle="--", alpha=0.25)
+        axis.spines[["top", "right", "left"]].set_visible(False)
 
-        # Legend / information box
-        legend_text = (
-            "NETWORK FLOW INFORMATION\n"
-            "--------------------------------\n"
-            "Gray arrows = Possible producing decisions\n"
-            "Colored arrows = Optimal WWA paths\n\n"
-            f"Number of Optimal Paths = {path_count}\n"
-            f"Minimum Total Cost = RM {total_cost:,.2f}"
-        )
-
-        axis.text(
-            0.02,
-            0.97,
-            legend_text,
-            transform=axis.transAxes,
-            fontsize=9,
-            verticalalignment="top",
-            bbox=dict(
-                boxstyle="round",
-                facecolor="white",
-                alpha=0.9
-            )
-        )
-
-                # Summary Box (Using Fixed Rectangle Background)
-        # Define the position and size of the summary box
-        box_x = 0.02
-        box_y = 0.05  # Moved very close to the X-axis
-        box_w = 0.30
-        box_h = 0.32  # Increased height to fit the last line
-        
-        # Draw a white rectangle background
-        import matplotlib.patches as patches
-        rect = patches.Rectangle(
-            (box_x, box_y), box_w, box_h,
-            linewidth=1, edgecolor="black", facecolor="white", alpha=0.9,
-            transform=axis.transAxes, zorder=5
-        )
-        axis.add_patch(rect)
-
-        # Write the title (top inside the box)
-        axis.text(
-            box_x + 0.02, box_y + box_h - 0.02,
-            "OPTIMAL PATHS\n==============================",
-            transform=axis.transAxes, fontsize=9, fontweight="bold",
-            verticalalignment="top", zorder=6
-        )
-
-        # Loop to draw colored lines and text for each path
-        line_spacing = 0.045 # Adjusted spacing
-        start_y = box_y + box_h - 0.06 # Starting position for the first line
-
+        path_lines = []
         for i, path in enumerate(optimal_paths, start=1):
-            current_y = start_y - i * line_spacing
-
-            # Get the color for the current path
-            color = f"C{(i - 1) % 10}"
-
-            # Draw the colored short line on the left
-            axis.plot(
-                [box_x + 0.02, box_x + 0.06],
-                [current_y, current_y],
-                color=color, linewidth=4, transform=axis.transAxes, zorder=6
-            )
-
-            # Construct the path text
             path_text = " → ".join(
                 f"Y{start}" if start == end else f"Y{start}-Y{end}"
                 for start, end in path
             )
             if path:
                 path_text += " → END"
-
-            # Draw the path text (aligned to the left)
-            axis.text(
-                box_x + 0.08, current_y,
-                f"Path {i}: {path_text}",
-                transform=axis.transAxes, fontsize=9,
-                verticalalignment="center", zorder=6
-            )
-
-        # Write the total cost at the bottom
-        cost_y = start_y - (len(optimal_paths) + 1.0) * line_spacing # Adjusted to keep it inside
-        axis.text(
-            box_x + 0.03, cost_y,
-            f"Same Minimum Cost: RM {total_cost:,.2f}",
-            transform=axis.transAxes, fontsize=9, fontweight="bold",
-            verticalalignment="center", zorder=6
+            path_lines.append(f"Plan {i}: {path_text}")
+        summary = (
+            "Colored arcs show the optimal decisions\n"
+            + "\n".join(path_lines[:8])
+            + (f"\n… and {path_count - 8} more" if path_count > 8 else "")
+            + f"\n\nMinimum cost: RM {total_cost:,.2f}"
         )
-
-        # Remove top / right spines
-        axis.spines["top"].set_visible(False)
-        axis.spines["right"].set_visible(False)
-
-        # Adjust layout
+        axis.text(
+            0.02, 0.97, summary, transform=axis.transAxes, fontsize=9,
+            verticalalignment="top", color=self.text_color,
+            bbox=dict(boxstyle="round,pad=0.8", facecolor="white", edgecolor=self.border_color),
+        )
         figure.tight_layout()
-
-        # Display matplotlib in Tkinter
         canvas = FigureCanvasTkAgg(figure, master=flow_window)
         canvas.draw()
-        canvas.get_tk_widget().pack(
-            fill="both",
-            expand=True,
-            padx=10,
-            pady=10
-        )
+        canvas.get_tk_widget().pack(fill="both", expand=True, padx=18, pady=18)
 
-        
     def show_optimal_paths(self):
-
         if self.results is None:
-            messagebox.showwarning(
-            "No Results",
-            "Please calculate the WWA solution first."
-            )
+            messagebox.showwarning("No Results", "Calculate a production plan first.")
             return
-
         paths = self.results["optimal_paths"]
         demands = self.results["demands"]
-
         path_window = tk.Toplevel(self.root)
-        path_window.title("Multiple Optimal Solutions")
-        path_window.geometry("700x600")
+        path_window.title("Optimal Plans · Wagner–Whitin Planner")
+        path_window.geometry("760x620")
+        path_window.minsize(600, 460)
+        path_window.configure(bg=self.bg_color)
 
+        heading = ttk.Frame(path_window, style="Header.TFrame", padding=(20, 16))
+        heading.pack(fill="x")
         ttk.Label(
-            path_window,
-            text=f"Number of Optimal Solutions: {len(paths)}",
-            font=("Arial", 14, "bold")
-        ).pack(pady=10)
-
+            heading, text=f"{len(paths)} optimal production plan(s)", style="CardTitle.TLabel"
+        ).pack(anchor="w")
         ttk.Label(
-            path_window,
-            text="The following producing plans have the same minimum total cost.\n",
-            font=("Arial", 12)
-        ).pack(pady=(0, 10))
+            heading,
+            text=f"Each plan has the same minimum cost of RM {self.results['total_cost']:,.2f}.",
+            style="Subtitle.TLabel",
+        ).pack(anchor="w", pady=(2, 0))
 
+        text_holder = tk.Frame(
+            path_window,
+            bg=self.panel_color,
+            highlightbackground=self.border_color,
+            highlightthickness=1,
+        )
+        text_holder.pack(fill="both", expand=True, padx=20, pady=20)
         text = tk.Text(
-            path_window,
-            width=70,
-            height=30,
-            font=("Courier New", 12)
-            )
-
-        text.pack(
-            fill="both",
-            expand=True,
-            padx=15,
-            pady=10
-            )
-
+            text_holder, width=70, height=30, font=("Consolas", 11),
+            bg=self.panel_color, fg=self.text_color, relief="flat", padx=16, pady=14,
+        )
+        text_scroll = ttk.Scrollbar(text_holder, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=text_scroll.set)
+        text.pack(side="left", fill="both", expand=True)
+        text_scroll.pack(side="right", fill="y")
         for path_number, path in enumerate(paths, start=1):
-
-            text.insert(
-                tk.END,
-                f"OPTIMAL SOLUTION {path_number}\n"
-            )
-
-            text.insert(
-                tk.END,
-                "-" * 40 + "\n"
-            )
-
-            # Create produce quantity for every year
+            text.insert(tk.END, f"PLAN {path_number}\n")
+            text.insert(tk.END, "─" * 48 + "\n")
             produce_quantities = [0.0] * len(demands)
-
             for start_year, end_year in path:
-
-                qty = sum(
-                    demands[start_year - 1:end_year]
-                )
-
+                qty = sum(demands[start_year - 1:end_year])
                 produce_quantities[start_year - 1] = qty
-
-            # Display every year
             for year in range(1, len(demands) + 1):
-
                 if produce_quantities[year - 1] > 0:
-                    text.insert(
-                        tk.END,
-                        f"Year {year:<3}: "
-                        f"{produce_quantities[year - 1]:.2f}\n"
-                    )
+                    text.insert(tk.END, f"Year {year:<3}  Produce {produce_quantities[year - 1]:,.2f} units\n")
                 else:
-                    text.insert(
-                        tk.END,
-                        f"Year {year:<3}: -\n"
-                    )
-
-            text.insert(
-                tk.END,
-                "\n"
-            )
-
+                    text.insert(tk.END, f"Year {year:<3}  No production\n")
+            text.insert(tk.END, "\n")
         text.config(state="disabled")
 
     # CLEAR GUI
     def clear(self):
-
-        self.period_entry.delete(
-            0,
-            tk.END
-        )
-
-        self.setup_entry.delete(
-            0,
-            tk.END
-        )
-
-        self.holding_entry.delete(
-            0,
-            tk.END
-        )
-
-        self.variable_entry.delete(
-            0,
-            tk.END
-        )
-
-        for widget in (
-            self.demand_frame.winfo_children()
-        ):
-
+        self.period_var.set("")
+        self.setup_var.set("")
+        self.holding_var.set("")
+        self.variable_var.set("")
+        for widget in self.demand_frame.winfo_children():
             widget.destroy()
-
         self.demand_entries = []
-
-        for item in (
-            self.table.get_children()
-        ):
-
-            self.table.delete(
-                item
-            )
-
+        self.demand_count_label.config(
+            text="Set the number of years, then generate the demand fields."
+        )
+        for item in self.table.get_children():
+            self.table.delete(item)
         self.results = None
-
-        self.cost_label.config(
-            text="Total Optimal Cost: RM 0.00"
-        )
-
-        self.status.config(
-            text="All fields cleared."
-        )
+        self.metric_values["solutions"].config(text="0")
+        for key in ("setup", "holding", "variable", "total"):
+            self.metric_values[key].config(text="RM 0.00")
+        self._set_result_actions(False)
+        self.status.config(text="All fields cleared.")
+        self.period_entry.focus_set()
 
 # MAIN PROGRAM
 def main():
-
-    # Create the main GUI window
     root = tk.Tk()
-
-    # Create the WWA GUI application
-    app = WagnerWhitinGUI(root)
-
-    # Start the GUI
+    WagnerWhitinGUI(root)
     root.mainloop()
 
 # PROGRAM START
 if __name__ == "__main__":
-
     main()
