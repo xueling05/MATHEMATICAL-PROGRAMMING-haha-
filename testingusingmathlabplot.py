@@ -423,7 +423,7 @@ class FileManager:
                 )
 
                 file.write(
-                    f"Minimum Total Cost: "
+                    f"Total Optimal Cost: "
                     f"RM {results['total_cost']:.2f}\n\n"
                 )
 
