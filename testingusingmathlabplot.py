@@ -812,11 +812,6 @@ class WagnerWhitinGUI:
             text="Find the minimum-cost dynamic lot-size plan across multiple years.",
             style="Subtitle.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(2, 0))
-        ttk.Label(
-            header,
-            text="1  Enter costs     2  Add demand     3  Calculate",
-            style="Subtitle.TLabel",
-        ).grid(row=0, column=1, rowspan=2, sticky="e", padx=(24, 0))
 
         main = ttk.Frame(self.root, style="App.TFrame", padding=(20, 18, 20, 14))
         main.grid(row=1, column=0, sticky="nsew")
