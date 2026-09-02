@@ -1056,7 +1056,7 @@ class WagnerWhitinGUI:
         result_frame.grid_columnconfigure(0, weight=1)
         result_frame.grid_rowconfigure(3, weight=1)
 
-        ttk.Label(result_frame, text="Optimal production plan", style="CardTitle.TLabel").grid(
+        ttk.Label(result_frame, text="Optimal Production Plan", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
