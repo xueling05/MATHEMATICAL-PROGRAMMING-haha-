@@ -811,11 +811,7 @@ class WagnerWhitinGUI:
             text="Find the minimum-cost dynamic lot-size plan across multiple years.",
             style="Subtitle.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(2, 0))
-        ttk.Label(
-            header,
-            text="1  Enter costs     2  Add demand     3  Calculate",
-            style="Subtitle.TLabel",
-        ).grid(row=0, column=1, rowspan=2, sticky="e", padx=(24, 0))
+       
 
         main = ttk.Frame(self.root, style="App.TFrame", padding=(20, 18, 20, 14))
         main.grid(row=1, column=0, sticky="nsew")
@@ -1426,9 +1422,6 @@ class WagnerWhitinGUI:
 
     # DEMAND TREND LINE GRAPH
     def show_demand_trend(self):
-        if self.results is None:
-            messagebox.showwarning("No Results", "Calculate a production plan first.")
-            return
         graph_window = tk.Toplevel(self.root)
         graph_window.title("Demand Trend · Wagner–Whitin Planner")
         graph_window.geometry("850x600")
@@ -1472,9 +1465,6 @@ class WagnerWhitinGUI:
 
     # DIRECTED NETWORK FLOW DIAGRAM
     def show_network_flow(self):
-        if self.results is None:
-            messagebox.showwarning("No Results", "Calculate a production plan first.")
-            return
         n = self.results["n"]
         demands = self.results["demands"]
         optimal_paths = self.results["optimal_paths"]
@@ -1728,9 +1718,6 @@ class WagnerWhitinGUI:
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=18, pady=18)
 
     def show_optimal_paths(self):
-        if self.results is None:
-            messagebox.showwarning("No Results", "Calculate a production plan first.")
-            return
         paths = self.results["optimal_paths"]
         demands = self.results["demands"]
         path_window = tk.Toplevel(self.root)
