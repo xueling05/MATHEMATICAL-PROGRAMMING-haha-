@@ -71,7 +71,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
     generate_paths(1, [])
 
-    # FFORWARD BACKTRACKING
+    # FORWARD BACKTRACKING
 
     produce_schedule = [0.0] * n
     produce_end_year = [0] * n
@@ -210,10 +210,6 @@ class FileManager:
 
     @staticmethod
     def export_csv(results):
-
-        if results is None:
-            raise ValueError("No calculation result available.")
-
         filename = filedialog.asksaveasfilename(
             title="Export Results to CSV",
             defaultextension=".csv",
@@ -318,10 +314,6 @@ class FileManager:
 
     @staticmethod
     def export_report(results):
-
-        if results is None:
-            raise ValueError("No calculation result available.")
-
         filename = filedialog.asksaveasfilename(
             title="Export WWA Report",
             defaultextension=".txt",
@@ -482,7 +474,6 @@ class FileManager:
 
 # GRAPHICAL USER INTERFACE (GUI)
 # Layout and color design for GUI
-
 class WagnerWhitinGUI:
     def __init__(self, root):
         self.root = root
@@ -1469,9 +1460,6 @@ class WagnerWhitinGUI:
         demands = self.results["demands"]
         optimal_paths = self.results["optimal_paths"]
         total_cost = self.results["total_cost"]
-        if not optimal_paths:
-            messagebox.showwarning("No Optimal Path", "No optimal path was found.")
-            return
         flow_window = tk.Toplevel(self.root)
         flow_window.title("Optimal Network Paths · Wagner–Whitin Planner")
         flow_window.geometry("1350x800")
@@ -1538,16 +1526,16 @@ class WagnerWhitinGUI:
 
         # High-contrast path colours. Gray is intentionally excluded because gray is reserved for all possible (non-highlighted) decisions.
         palette = (
-            "#0072B2",  # blue
-            "#E69F00",  # orange
-            "#009E73",  # green
-            "#D55E00",  # vermillion
-            "#CC79A7",  # magenta
-            "#56B4E9",  # sky blue
-            "#6F4E7C",  # purple
-            "#8C564B",  # brown
-            "#17BECF",  # cyan
-            "#9A7D0A",  # dark gold
+            "#0072B2",  
+            "#E69F00",  
+            "#009E73",  
+            "#D55E00",  
+            "#CC79A7",  
+            "#56B4E9",  
+            "#6F4E7C",  
+            "#8C564B",  
+            "#17BECF",  
+            "#9A7D0A",  
         )
         for path_index, path in enumerate(optimal_paths, start=1):
             if path_count == 1:
