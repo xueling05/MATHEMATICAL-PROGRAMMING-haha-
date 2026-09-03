@@ -12,13 +12,13 @@ from matplotlib.patches import FancyBboxPatch
 
 def wagner_whitin_backward(n, demands, s, h, v):
 
-    # Initialize DP tables
+    # INITIALIZE DP TABLE
     f = [0.0] * (n + 2)
 
-    # Store all optimal choices for each period
+    # STORE ALL OPTIMAL CHOICES FOR EVERY PERIOD
     optimal_choices = [[] for _ in range(n + 1)]
 
-    # Backward Dynamic Programming Calculation
+    # BACKWARD DYNAMIC PROGRAMMING CALCUALTION
     for i in range(n, 0, -1):
 
         min_cost = float("inf")
@@ -52,7 +52,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
         f[i] = min_cost
         optimal_choices[i] = best_ks
 
-    # Generate all optimal paths
+    # GENERATE ALL OPTIMAL PATHS
     optimal_paths = []
 
     def generate_paths(current_period, path):
@@ -71,7 +71,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
     generate_paths(1, [])
 
-    # Forward Backtracking
+    # FFORWARD BACKTRACKING
 
     produce_schedule = [0.0] * n
     produce_end_year = [0] * n
@@ -89,8 +89,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
             produce_schedule[start_year - 1] = qty
             produce_end_year[start_year - 1] = end_year
 
-    # Cost Breakdown
-
+    # COST BREAKDOWN
     total_setup_cost = 0
     total_holding_cost = 0
     total_variable_cost = 0
@@ -110,7 +109,7 @@ def wagner_whitin_backward(n, demands, s, h, v):
     total_cost = (total_setup_cost + total_holding_cost + total_variable_cost)
 
    
-    # calculation results to the GUI.
+    # CALCULATION RESULTS TO GUI
     return {
         "n": n,
         "demands": demands,
@@ -133,7 +132,6 @@ def wagner_whitin_backward(n, demands, s, h, v):
 
 
 # INPUT VALIDATION FOR GUI
-
 def validate_number(value,integer=False,allow_zero=True):
     try:
         if integer:
@@ -423,7 +421,7 @@ class FileManager:
                 )
 
                 file.write(
-                    f"Total Optimal Cost: "
+                    f"Minimum Total Cost: "
                     f"RM {results['total_cost']:.2f}\n\n"
                 )
 
@@ -482,7 +480,8 @@ class FileManager:
 
             raise ValueError(f"Unable to export report:\n{error}")
 
-# GRAPHICAL USER INTERFACE
+# GRAPHICAL USER INTERFACE (GUI)
+# Layout and color design for GUI
 
 class WagnerWhitinGUI:
     def __init__(self, root):
@@ -812,6 +811,11 @@ class WagnerWhitinGUI:
             text="Find the minimum-cost dynamic lot-size plan across multiple years.",
             style="Subtitle.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(
+            header,
+            text="1  Enter costs     2  Add demand     3  Calculate",
+            style="Subtitle.TLabel",
+        ).grid(row=0, column=1, rowspan=2, sticky="e", padx=(24, 0))
 
         main = ttk.Frame(self.root, style="App.TFrame", padding=(20, 18, 20, 14))
         main.grid(row=1, column=0, sticky="nsew")
@@ -819,6 +823,7 @@ class WagnerWhitinGUI:
         main.grid_columnconfigure(1, minsize=165)
         main.grid_columnconfigure(2, minsize=330, weight=1)
         main.grid_columnconfigure(3, minsize=175)
+
         # Keep enough guaranteed height for the result heading, metrics, and table.
         main.grid_rowconfigure(1, minsize=210, weight=1)
 
@@ -1313,7 +1318,7 @@ class WagnerWhitinGUI:
             messagebox.showerror("Calculation Error", str(error))
 
     # DISPLAY RESULTS IN GUI
- 
+
     # DISPLAY ALL OPTIMAL RESULTS IN MAIN TABLE
     def display_results(self):
         for item in self.table.get_children():
@@ -1400,11 +1405,7 @@ class WagnerWhitinGUI:
             messagebox.showerror("Read Error", str(error))
 
     # EXPORT CSV
-
     def export_csv(self):
-        if self.results is None:
-            messagebox.showwarning("No Results", "Calculate a production plan first.")
-            return
         try:
             success = FileManager.export_csv(self.results)
             if success:
@@ -1414,7 +1415,6 @@ class WagnerWhitinGUI:
             messagebox.showerror("Export Error", str(error))
 
     # EXPORT TEXT REPORT
-
     def export_report(self):
         if self.results is None:
             messagebox.showwarning("No Results", "Calculate a production plan first.")
@@ -1427,7 +1427,7 @@ class WagnerWhitinGUI:
         except Exception as error:
             messagebox.showerror("Export Error", str(error))
 
-    # demand trend line graph
+    # DEMAND TREND LINE GRAPH
     def show_demand_trend(self):
         if self.results is None:
             messagebox.showwarning("No Results", "Calculate a production plan first.")
@@ -1549,8 +1549,7 @@ class WagnerWhitinGUI:
         path_count = len(optimal_paths)
         path_spacing = 0.10
 
-        # High-contrast path colours. Gray is intentionally excluded because
-        # gray is reserved for all possible (non-highlighted) decisions.
+        # High-contrast path colours. Gray is intentionally excluded because gray is reserved for all possible (non-highlighted) decisions.
         palette = (
             "#0072B2",  # blue
             "#E69F00",  # orange
@@ -1592,7 +1591,7 @@ class WagnerWhitinGUI:
         axis.grid(axis="x", linestyle="--", alpha=0.25)
         axis.spines[["top", "right", "left"]].set_visible(False)
 
-        # Explain the gray and coloured network arcs.
+        # Legend
         network_legend = [
             Line2D(
                 [0],
@@ -1623,10 +1622,8 @@ class WagnerWhitinGUI:
         )
         arc_legend.set_zorder(12)
 
-        # Build an Optimal Paths information box like the supplied reference.
+        # Build an Optimal Paths information box.
         # Each colour sample exactly matches the corresponding network path.
-        # Keep this preview compact so it never covers the network arcs.
-        # The complete path list remains available through "View plans".
         displayed_paths = optimal_paths[:5]
         hidden_path_count = max(0, path_count - len(displayed_paths))
         display_rows = len(displayed_paths) + (1 if hidden_path_count else 0)
