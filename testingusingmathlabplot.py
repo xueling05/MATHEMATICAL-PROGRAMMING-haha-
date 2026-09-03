@@ -1416,9 +1416,6 @@ class WagnerWhitinGUI:
 
     # EXPORT TEXT REPORT
     def export_report(self):
-        if self.results is None:
-            messagebox.showwarning("No Results", "Calculate a production plan first.")
-            return
         try:
             success = FileManager.export_report(self.results)
             if success:
